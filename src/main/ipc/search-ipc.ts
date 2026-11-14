@@ -8,6 +8,8 @@ import { getDatabase } from '../services/db/connection';
 import { searchFtsQuery } from '../services/db/queries/fts-queries';
 import { searchVectorSimilarity } from '../services/search/vector-engine';
 import { fuseAndRankResults } from '../services/search/hybrid-ranker';
+import { interpretNaturalQuery } from '../services/search/query-interpreter';
+import { getActiveAiProvider } from '../services/ai/ai-service';
 
 const searchOptionsSchema = z.object({
   useAiInterpretation: z.boolean().optional().default(true),
@@ -60,27 +62,41 @@ export function registerSearchIpc(): void {
         };
       }
 
+      // Query interpretation (AI or deterministic fallback)
+      const provider = options.useAiInterpretation ? getActiveAiProvider() : undefined;
+      const structuredQuery = await interpretNaturalQuery(parsedQuery, provider);
+
+      const activeKeywords =
+        structuredQuery.keywords.length > 0 ? structuredQuery.keywords : [parsedQuery];
+      const activeQueryStr = activeKeywords.join(' ');
+
+      const effectiveExtensions = options.filters?.extensions?.length
+        ? options.filters.extensions
+        : structuredQuery.extensions;
+      const effectiveCategory = options.filters?.category || structuredQuery.category;
+      const effectiveDateAfter = options.filters?.dateAfter || structuredQuery.dateAfter;
+      const effectiveDateBefore = options.filters?.dateBefore || structuredQuery.dateBefore;
+
       // 1. Keyword search via SQLite FTS5
-      const ftsResult = searchFtsQuery(db, parsedQuery, {
-        limit: options.limit,
-        offset: options.offset,
-        extensions: options.filters?.extensions,
-        category: options.filters?.category,
-        dateAfter: options.filters?.dateAfter,
-        dateBefore: options.filters?.dateBefore,
+      const ftsResult = searchFtsQuery(db, activeQueryStr, {
+        limit: options.limit * 2,
+        offset: 0,
+        extensions: effectiveExtensions,
+        category: effectiveCategory,
+        dateAfter: effectiveDateAfter,
+        dateBefore: effectiveDateBefore,
       });
 
       // 2. Semantic vector search via sqlite-vec
       let vectorMatches: any[] = [];
       try {
-        vectorMatches = await searchVectorSimilarity(db, parsedQuery, 20);
+        vectorMatches = await searchVectorSimilarity(db, activeQueryStr, 30);
       } catch (vecErr) {
         console.warn('[SearchIPC] Vector search fallback to FTS-only:', vecErr);
       }
 
       // 3. Hybrid fusion ranking
-      const keywords = parsedQuery.split(/\s+/).filter((k) => k.length > 0);
-      const rankedResults = fuseAndRankResults(ftsResult.results, vectorMatches, keywords);
+      const rankedResults = fuseAndRankResults(ftsResult.results, vectorMatches, activeKeywords);
 
       // Apply pagination
       const paginated = rankedResults.slice(options.offset, options.offset + options.limit);
@@ -88,11 +104,7 @@ export function registerSearchIpc(): void {
       return {
         results: paginated,
         totalCount: rankedResults.length,
-        queryInterpreted: {
-          rawQuery: parsedQuery,
-          keywords,
-          sortBy: 'relevance',
-        },
+        queryInterpreted: structuredQuery,
         executionTimeMs: Math.round(performance.now() - startTime),
       };
     }
