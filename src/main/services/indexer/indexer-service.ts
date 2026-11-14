@@ -9,6 +9,8 @@ import {
   updateFileHash,
 } from '../db/queries/file-queries';
 import { updateFolderScanTimestamp } from '../db/queries/folder-queries';
+import { generateEmbedding } from '../../../workers/embedder/onnx-runner';
+import { insertVectorEmbedding } from '../search/vector-engine';
 import { IPC_CHANNELS, type IndexingProgressEvent } from '../../../shared/contracts/ipc-api';
 import type { FileRecord } from '../../../shared/types/models';
 
@@ -113,6 +115,21 @@ export class IndexerService {
               tokenCount: c.tokenCount,
             }))
           );
+
+          // Generate embeddings and store in sqlite-vec
+          for (const chunk of result.chunks) {
+            try {
+              const embedding = await generateEmbedding(chunk.chunkText);
+              const chunkRow = db
+                .prepare('SELECT id FROM file_content WHERE file_id = ? AND chunk_index = ?')
+                .get(fileId, chunk.chunkIndex) as any;
+              if (chunkRow?.id) {
+                insertVectorEmbedding(db, chunkRow.id, fileId, embedding);
+              }
+            } catch (vecErr) {
+              console.warn('[IndexerService] Vector embedding error for chunk:', vecErr);
+            }
+          }
         }
 
         processed++;

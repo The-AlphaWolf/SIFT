@@ -6,6 +6,8 @@ import { IPC_CHANNELS } from '../../shared/contracts/ipc-api';
 import type { SearchResponse } from '../../shared/contracts/ipc-api';
 import { getDatabase } from '../services/db/connection';
 import { searchFtsQuery } from '../services/db/queries/fts-queries';
+import { searchVectorSimilarity } from '../services/search/vector-engine';
+import { fuseAndRankResults } from '../services/search/hybrid-ranker';
 
 const searchOptionsSchema = z.object({
   useAiInterpretation: z.boolean().optional().default(true),
@@ -50,6 +52,15 @@ export function registerSearchIpc(): void {
       const startTime = performance.now();
       const db = getDatabase();
 
+      if (!parsedQuery) {
+        return {
+          results: [],
+          totalCount: 0,
+          executionTimeMs: 0,
+        };
+      }
+
+      // 1. Keyword search via SQLite FTS5
       const ftsResult = searchFtsQuery(db, parsedQuery, {
         limit: options.limit,
         offset: options.offset,
@@ -59,12 +70,27 @@ export function registerSearchIpc(): void {
         dateBefore: options.filters?.dateBefore,
       });
 
+      // 2. Semantic vector search via sqlite-vec
+      let vectorMatches: any[] = [];
+      try {
+        vectorMatches = await searchVectorSimilarity(db, parsedQuery, 20);
+      } catch (vecErr) {
+        console.warn('[SearchIPC] Vector search fallback to FTS-only:', vecErr);
+      }
+
+      // 3. Hybrid fusion ranking
+      const keywords = parsedQuery.split(/\s+/).filter((k) => k.length > 0);
+      const rankedResults = fuseAndRankResults(ftsResult.results, vectorMatches, keywords);
+
+      // Apply pagination
+      const paginated = rankedResults.slice(options.offset, options.offset + options.limit);
+
       return {
-        results: ftsResult.results,
-        totalCount: ftsResult.totalCount,
+        results: paginated,
+        totalCount: rankedResults.length,
         queryInterpreted: {
           rawQuery: parsedQuery,
-          keywords: parsedQuery ? parsedQuery.split(/\s+/) : [],
+          keywords,
           sortBy: 'relevance',
         },
         executionTimeMs: Math.round(performance.now() - startTime),
