@@ -106,17 +106,20 @@ function AppContent(): JSX.Element {
       {/* Sidebar Navigation */}
       <aside className="w-64 border-r border-white/[0.08] bg-[#0f0f10] flex flex-col justify-between p-4 shrink-0">
         <div className="space-y-6">
-          {/* Logo / Brand */}
-          <div className="flex items-center space-x-3 px-1.5 pt-1">
-            <div className="w-7 h-7 rounded-md bg-[#232325] border border-white/[0.08] flex items-center justify-center shrink-0">
-              <HardDrive className="w-3.5 h-3.5 text-[#ededed]" />
+          {/* Logo / Brand with vivid color accent */}
+          <div className="flex items-center space-x-3 px-1 pt-1">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 border border-indigo-400/30 flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/20">
+              <HardDrive className="w-4 h-4 text-white" />
             </div>
             <div className="space-y-0.5">
-              <div className="text-sm font-medium tracking-tight text-[#ededed]">
-                SIFT
+              <div className="text-sm font-semibold tracking-tight text-[#ededed] flex items-center space-x-2">
+                <span>SIFT</span>
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  LOCAL
+                </span>
               </div>
               <div className="text-[11px] text-[#85858b] font-normal leading-none">
-                Local file librarian
+                Intelligent file librarian
               </div>
             </div>
           </div>
@@ -130,17 +133,21 @@ function AppContent(): JSX.Element {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-normal transition-colors duration-150 cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors duration-150 cursor-pointer ${
                     isActive
-                      ? 'bg-[#232325] text-[#ededed] border border-white/[0.08] surface-highlight'
+                      ? 'bg-indigo-600/15 text-indigo-200 border border-indigo-500/30 surface-highlight'
                       : 'text-[#a1a1a6] hover:text-[#ededed] hover:bg-[#19191b] border border-transparent'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#ededed]' : 'text-[#85858b]'}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-[#85858b]'}`} />
                     <span>{item.label}</span>
                   </div>
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] text-[10px] font-mono text-[#85858b]">
+                  <kbd className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${
+                    isActive
+                      ? 'bg-indigo-500/20 border border-indigo-500/30 text-indigo-300'
+                      : 'bg-white/[0.04] border border-white/[0.06] text-[#85858b]'
+                  }`}>
                     {item.shortcut}
                   </kbd>
                 </button>
@@ -154,8 +161,8 @@ function AppContent(): JSX.Element {
           <div className="flex items-center justify-between px-1 text-[11px] text-[#85858b]">
             <span className="flex items-center space-x-2">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  ipcConnected ? 'bg-[#4cc38a]' : 'bg-[#e5484d]'
+                className={`w-2 h-2 rounded-full ${
+                  ipcConnected ? 'bg-[#10b981]' : 'bg-[#ef4444]'
                 }`}
               />
               <span className="text-[#a1a1a6]">IPC Bridge</span>
@@ -165,10 +172,10 @@ function AppContent(): JSX.Element {
 
           <div className="px-2.5 py-1.5 rounded-lg bg-[#19191b] border border-white/[0.08] text-[11px] text-[#85858b] flex items-center justify-between">
             <span className="flex items-center space-x-2">
-              <Cpu className="w-3.5 h-3.5 text-[#85858b]" />
-              <span className="text-[#a1a1a6]">Ryzen 7 • RTX 3050</span>
+              <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[#ededed] font-medium">Ryzen 7 • RTX 3050</span>
             </span>
-            <span className="text-[#85858b] font-mono text-[10px]">24 GB</span>
+            <span className="text-indigo-300 font-mono text-[10px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">24 GB</span>
           </div>
         </div>
       </aside>

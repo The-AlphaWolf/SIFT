@@ -34,6 +34,17 @@ const SUGGESTED_QUERIES = [
   'Largest PDF files',
 ];
 
+const CATEGORY_TAG_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Academics: { bg: 'bg-blue-500/15', text: 'text-blue-300', border: 'border-blue-500/30' },
+  Work: { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30' },
+  Projects: { bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/30' },
+  Personal: { bg: 'bg-rose-500/15', text: 'text-rose-300', border: 'border-rose-500/30' },
+  Finance: { bg: 'bg-amber-500/15', text: 'text-amber-300', border: 'border-amber-500/30' },
+  Applications: { bg: 'bg-cyan-500/15', text: 'text-cyan-300', border: 'border-cyan-500/30' },
+  Images: { bg: 'bg-indigo-500/15', text: 'text-indigo-300', border: 'border-indigo-500/30' },
+  Miscellaneous: { bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-500/30' },
+};
+
 interface SearchViewProps {
   initialCategory?: string | null;
   onClearCategory?: () => void;
@@ -213,43 +224,67 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
 
   const hasActiveFilters = selectedExt !== 'All' || selectedCat !== 'All' || sortBy !== 'relevance';
 
-  const getFileIcon = (ext: string) => {
+  const getFileVisual = (ext: string) => {
     const lower = ext.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(lower)) {
-      return <ImageIcon className="w-4 h-4 text-[#85858b]" />;
+      return {
+        icon: <ImageIcon className="w-4 h-4 text-pink-400" />,
+        container: 'bg-pink-500/10 border-pink-500/20',
+      };
     }
     if (['ts', 'js', 'py', 'rs', 'go', 'cpp', 'html', 'css', 'json'].includes(lower)) {
-      return <FileCode className="w-4 h-4 text-[#85858b]" />;
+      return {
+        icon: <FileCode className="w-4 h-4 text-emerald-400" />,
+        container: 'bg-emerald-500/10 border-emerald-500/20',
+      };
     }
-    if (['pdf', 'docx', 'txt', 'md'].includes(lower)) {
-      return <FileText className="w-4 h-4 text-[#85858b]" />;
+    if (lower === 'pdf') {
+      return {
+        icon: <FileText className="w-4 h-4 text-rose-400" />,
+        container: 'bg-rose-500/10 border-rose-500/20',
+      };
     }
-    return <FileIcon className="w-4 h-4 text-[#85858b]" />;
+    if (['docx', 'doc'].includes(lower)) {
+      return {
+        icon: <FileText className="w-4 h-4 text-blue-400" />,
+        container: 'bg-blue-500/10 border-blue-500/20',
+      };
+    }
+    if (['txt', 'md'].includes(lower)) {
+      return {
+        icon: <FileText className="w-4 h-4 text-cyan-400" />,
+        container: 'bg-cyan-500/10 border-cyan-500/20',
+      };
+    }
+    return {
+      icon: <FileIcon className="w-4 h-4 text-[#85858b]" />,
+      container: 'bg-white/[0.04] border-white/[0.08]',
+    };
   };
 
   const renderBadge = (matchType: SearchResultItem['matchType'], score: number) => {
     switch (matchType) {
       case 'hybrid':
         return (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums bg-white/[0.04] text-[#ededed] border border-white/[0.08]">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono tabular-nums bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold shadow-sm">
             Hybrid {(score * 100).toFixed(0)}%
           </span>
         );
       case 'vector':
         return (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums bg-white/[0.04] text-[#a1a1a6] border border-white/[0.08]">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono tabular-nums bg-purple-500/15 text-purple-300 border border-purple-500/30 font-semibold">
             Semantic {(score * 100).toFixed(0)}%
           </span>
         );
       case 'fts':
         return (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/[0.04] text-[#a1a1a6] border border-white/[0.08]">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/15 text-blue-300 border border-blue-500/30 font-semibold">
             Full-text
           </span>
         );
       default:
         return (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/[0.04] text-[#85858b] border border-white/[0.08]">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/[0.04] text-[#85858b] border border-white/[0.08]">
             Filename
           </span>
         );
@@ -262,15 +297,15 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
       <div className="p-4 border-b border-white/[0.08] bg-[#0f0f10] space-y-3">
         {/* Search Input Box */}
         <div className="relative flex items-center">
-          <Search className="w-4 h-4 text-[#85858b] absolute left-3.5 pointer-events-none" />
+          <Search className="w-4 h-4 text-indigo-400 absolute left-3.5 pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search files or extracted text..."
-            className="w-full bg-[#19191b] text-[#ededed] placeholder-[#85858b] pl-10 pr-36 py-2.5 rounded-lg border border-white/[0.08] focus:border-white/[0.2] focus:bg-[#232325] focus:outline-none text-xs transition-colors duration-150"
+            placeholder="Search files or extracted text (e.g. 'microwave engineering waveguides', 'tax invoices')..."
+            className="w-full bg-[#19191b] text-[#ededed] placeholder-[#85858b] pl-10 pr-36 py-2.5 rounded-lg border border-white/[0.08] focus:border-indigo-500/50 focus:bg-[#232325] focus:outline-none text-xs transition-colors duration-150"
           />
 
           <div className="absolute right-2.5 flex items-center space-x-2">
@@ -295,7 +330,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             <button
               onClick={() => executeSearch()}
               disabled={isSearching || (!query.trim() && selectedCat === 'All' && selectedExt === 'All')}
-              className="px-3 py-1.5 rounded-md bg-[#ededed] hover:bg-white text-[#141415] text-xs font-medium surface-highlight transition-colors duration-150 flex items-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3.5 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition-colors duration-150 flex items-center space-x-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSearching ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -315,11 +350,11 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
               onClick={() => setUseAi(!useAi)}
               className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border transition-colors duration-150 cursor-pointer ${
                 useAi
-                  ? 'bg-[#232325] border-white/[0.14] text-[#ededed]'
+                  ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-200 font-medium'
                   : 'bg-[#19191b] border-white/[0.08] text-[#85858b] hover:text-[#a1a1a6]'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#85858b]" />
+              <Sparkles className={`w-3.5 h-3.5 ${useAi ? 'text-indigo-400' : 'text-[#85858b]'}`} />
               <span>AI query interpreter</span>
             </button>
 
@@ -335,7 +370,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                   }}
                   className={`px-2 py-0.5 rounded text-[11px] transition-colors duration-150 cursor-pointer ${
                     selectedExt === ext
-                      ? 'bg-[#232325] text-[#ededed] border border-white/[0.1] font-medium'
+                      ? 'bg-indigo-600/20 text-indigo-200 border border-indigo-500/40 font-medium'
                       : 'text-[#85858b] hover:text-[#ededed] border border-transparent'
                   }`}
                 >
@@ -356,7 +391,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                   }}
                   className={`px-2 py-0.5 rounded text-[11px] transition-colors duration-150 cursor-pointer ${
                     selectedCat === cat
-                      ? 'bg-[#232325] text-[#ededed] border border-white/[0.1] font-medium'
+                      ? 'bg-indigo-600/20 text-indigo-200 border border-indigo-500/40 font-medium'
                       : 'text-[#85858b] hover:text-[#ededed] border border-transparent'
                   }`}
                 >
@@ -369,7 +404,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="text-[11px] text-[#85858b] hover:text-[#ededed] px-2 py-1 rounded hover:bg-[#232325] transition-colors flex items-center space-x-1"
+                className="text-[11px] text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-rose-500/10 transition-colors flex items-center space-x-1"
               >
                 <X className="w-3 h-3" />
                 <span>Reset</span>
@@ -384,7 +419,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-transparent text-[11px] text-[#a1a1a6] focus:outline-none cursor-pointer"
+                className="bg-transparent text-[11px] text-[#ededed] focus:outline-none cursor-pointer"
               >
                 <option value="relevance" className="bg-[#19191b]">Relevance</option>
                 <option value="date" className="bg-[#19191b]">Date modified</option>
@@ -394,7 +429,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             </div>
 
             {searchResponse && (
-              <div className="text-[#85858b] text-[11px] font-mono tabular-nums">
+              <div className="text-indigo-300 text-[11px] font-mono tabular-nums bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
                 {searchResponse.totalCount} results ({searchResponse.executionTimeMs} ms)
               </div>
             )}
@@ -403,17 +438,17 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
 
         {/* AI Query Interpretation Info */}
         {searchResponse?.queryInterpreted && (
-          <div className="px-3 py-1.5 rounded-lg bg-[#19191b] border border-white/[0.08] text-[11px] text-[#a1a1a6] flex flex-wrap items-center gap-3">
-            <span className="text-[#ededed] font-medium flex items-center space-x-1">
-              <Sparkles className="w-3 h-3 text-[#85858b]" />
-              <span>Interpreted:</span>
+          <div className="px-3.5 py-1.5 rounded-lg bg-indigo-950/20 border border-indigo-500/25 text-[11px] text-[#ededed] flex flex-wrap items-center gap-3">
+            <span className="text-indigo-400 font-semibold flex items-center space-x-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>AI Interpreter:</span>
             </span>
-            <span>Keywords: <strong className="text-[#ededed] font-mono">[{searchResponse.queryInterpreted.keywords.join(', ')}]</strong></span>
+            <span>Keywords: <strong className="text-white font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">[{searchResponse.queryInterpreted.keywords.join(', ')}]</strong></span>
             {searchResponse.queryInterpreted.category && (
-              <span>Category: <strong className="text-[#ededed]">{searchResponse.queryInterpreted.category}</strong></span>
+              <span>Category: <strong className="text-indigo-300">{searchResponse.queryInterpreted.category}</strong></span>
             )}
             {searchResponse.queryInterpreted.extensions && (
-              <span>Extensions: <strong className="text-[#ededed] font-mono">[{searchResponse.queryInterpreted.extensions.join(', ')}]</strong></span>
+              <span>Extensions: <strong className="text-cyan-300 font-mono">[{searchResponse.queryInterpreted.extensions.join(', ')}]</strong></span>
             )}
           </div>
         )}
@@ -421,11 +456,11 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
 
       {/* Main Results / Empty State Area */}
       <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
           {isSearching && (
             <div className="h-48 flex flex-col items-center justify-center space-y-2 text-[#85858b]">
-              <Loader2 className="w-6 h-6 animate-spin text-[#ededed]" />
-              <p className="text-xs">Searching index with BM25 and vector embeddings...</p>
+              <Loader2 className="w-7 h-7 animate-spin text-indigo-400" />
+              <p className="text-xs text-[#a1a1a6]">Searching index with BM25 full-text and vector embeddings...</p>
             </div>
           )}
 
@@ -433,10 +468,10 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
           {!isSearching && !searchResponse && (
             <div className="max-w-xl mx-auto py-16 space-y-6">
               <div className="text-center space-y-1.5">
-                <div className="w-10 h-10 rounded-lg bg-[#19191b] border border-white/[0.08] flex items-center justify-center mx-auto">
-                  <Search className="w-5 h-5 text-[#85858b]" />
+                <div className="w-12 h-12 rounded-xl bg-indigo-600/15 border border-indigo-500/30 flex items-center justify-center mx-auto shadow-sm shadow-indigo-600/20">
+                  <Search className="w-6 h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-sm font-medium text-[#ededed]">Local library search</h3>
+                <h3 className="text-sm font-semibold text-[#ededed]">Local Library Search</h3>
                 <p className="text-xs text-[#85858b] max-w-sm mx-auto">
                   Search across file names and extracted text using hybrid BM25 full-text matching and MiniLM embeddings
                 </p>
@@ -444,8 +479,8 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
 
               {/* Sample Queries Chips */}
               <div className="space-y-2">
-                <div className="text-[11px] text-[#85858b] text-center">
-                  Sample queries:
+                <div className="text-[11px] text-[#85858b] text-center font-medium">
+                  Try a sample search:
                 </div>
                 <div className="flex flex-wrap justify-center gap-1.5">
                   {SUGGESTED_QUERIES.map((sq) => (
@@ -455,7 +490,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                         setQuery(sq);
                         executeSearch(sq);
                       }}
-                      className="px-2.5 py-1 rounded-md border border-white/[0.08] bg-[#19191b] hover:bg-[#232325] hover:border-white/[0.14] text-xs text-[#a1a1a6] hover:text-[#ededed] transition-colors duration-150 cursor-pointer"
+                      className="px-3 py-1 rounded-lg border border-white/[0.08] bg-[#19191b] hover:bg-indigo-950/20 hover:border-indigo-500/40 text-xs text-[#a1a1a6] hover:text-indigo-200 transition-colors duration-150 cursor-pointer shadow-sm"
                     >
                       {sq}
                     </button>
@@ -480,34 +515,37 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             </div>
           )}
 
-          {/* Search Result Cards */}
+          {/* Search Result Cards with Color-Coded File Icons and Badges */}
           {!isSearching && searchResponse && searchResponse.results.length > 0 && (
             <div className="space-y-2">
               {searchResponse.results.map((item) => {
                 const isCopied = copiedFileId === item.fileId;
                 const isSelected = previewFile?.fileId === item.fileId;
+                const visual = getFileVisual(item.extension);
+                const catTheme = CATEGORY_TAG_COLORS[item.category] || { bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-500/30' };
+
                 return (
                   <div
                     key={item.fileId}
                     onClick={() => handleOpenPreview(item)}
                     className={`p-3.5 rounded-xl border transition-colors duration-150 space-y-2 cursor-pointer ${
                       isSelected
-                        ? 'border-white/[0.2] bg-[#232325]'
-                        : 'border-white/[0.08] bg-[#19191b] hover:bg-[#232325]/70 hover:border-white/[0.12]'
+                        ? 'border-indigo-500/50 bg-[#232325] shadow-sm'
+                        : 'border-white/[0.08] bg-[#19191b] hover:bg-[#232325]/70 hover:border-indigo-500/30'
                     }`}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-2.5 overflow-hidden">
-                        <div className="p-1.5 rounded-md bg-[#232325] border border-white/[0.08] shrink-0 mt-0.5">
-                          {getFileIcon(item.extension)}
+                      <div className="flex items-start space-x-3 overflow-hidden">
+                        <div className={`p-2 rounded-lg border ${visual.container} shrink-0 mt-0.5`}>
+                          {visual.icon}
                         </div>
                         <div className="space-y-0.5 overflow-hidden">
                           <div className="flex items-center space-x-2">
-                            <h4 className="text-xs font-medium text-[#ededed] truncate">
+                            <h4 className="text-xs font-semibold text-[#ededed] hover:text-indigo-300 transition-colors truncate">
                               {item.filename}
                             </h4>
                             {renderBadge(item.matchType, item.score)}
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/[0.04] text-[#85858b] border border-white/[0.06]">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${catTheme.bg} ${catTheme.text} ${catTheme.border}`}>
                               {item.category}
                             </span>
                           </div>
@@ -525,9 +563,9 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                             handleCopyPath(item.filePath, item.fileId);
                           }}
                           title="Copy file path"
-                          className="p-1 rounded bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors"
+                          className="p-1 rounded bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors"
                         >
-                          {isCopied ? <Check className="w-3.5 h-3.5 text-[#4cc38a]" /> : <Copy className="w-3.5 h-3.5" />}
+                          {isCopied ? <Check className="w-3.5 h-3.5 text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                         <button
                           onClick={(e) => {
@@ -535,7 +573,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                             handleOpenPreview(item);
                           }}
                           title="Preview text"
-                          className="p-1 rounded bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors"
+                          className="p-1 rounded bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -545,7 +583,7 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                             handleOpenFile(item.filePath);
                           }}
                           title="Open file"
-                          className="p-1 rounded bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors"
+                          className="p-1 rounded bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </button>
@@ -555,20 +593,20 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
                             handleRevealFile(item.filePath);
                           }}
                           title="Reveal in Explorer"
-                          className="p-1 rounded bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors"
+                          className="p-1 rounded bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors"
                         >
                           <FolderOpen className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    {/* Highlighted Snippets if any */}
+                    {/* Highlighted Snippets with Warm Amber Highlighter */}
                     {item.snippets && item.snippets.length > 0 && (
                       <div className="p-2 rounded-lg bg-[#141415] border border-white/[0.06] text-[11px] text-[#a1a1a6] line-clamp-2 leading-relaxed">
                         <span
                           dangerouslySetInnerHTML={{
                             __html: item.snippets[0].text
-                              .replace(/<b>/g, '<mark class="bg-white/[0.15] text-[#ededed] px-1 py-0.5 rounded font-normal">')
+                              .replace(/<b>/g, '<mark class="bg-amber-400/25 text-amber-200 px-1 py-0.5 rounded font-medium border border-amber-400/30">')
                               .replace(/<\/b>/g, '</mark>'),
                           }}
                         />
@@ -595,11 +633,11 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
 
         {/* Right-Side Quick Preview Drawer */}
         {previewFile && (
-          <aside className="w-96 border-l border-white/[0.08] bg-[#0f0f10] flex flex-col h-full overflow-hidden">
+          <aside className="w-96 border-l border-white/[0.08] bg-[#0f0f10] flex flex-col h-full overflow-hidden shadow-2xl">
             <div className="p-3.5 border-b border-white/[0.08] flex items-center justify-between">
               <div className="space-y-0.5 overflow-hidden">
-                <h4 className="text-xs font-medium text-[#ededed] truncate">{previewFile.filename}</h4>
-                <p className="text-[10px] text-[#85858b] font-mono tabular-nums">
+                <h4 className="text-xs font-semibold text-[#ededed] truncate">{previewFile.filename}</h4>
+                <p className="text-[10px] text-indigo-300 font-mono tabular-nums">
                   {formatBytes(previewFile.sizeBytes)} • {previewFile.category}
                 </p>
               </div>
@@ -616,16 +654,16 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             <div className="p-2.5 flex items-center space-x-2 border-b border-white/[0.08] bg-[#141415]">
               <button
                 onClick={() => handleOpenFile(previewFile.filePath)}
-                className="flex-1 py-1 px-2.5 rounded-lg bg-[#ededed] hover:bg-white text-[#141415] text-xs font-medium surface-highlight flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+                className="flex-1 py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm shadow-indigo-600/20 flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>Open file</span>
               </button>
               <button
                 onClick={() => handleRevealFile(previewFile.filePath)}
-                className="py-1 px-2.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#ededed] text-xs font-normal border border-white/[0.08] flex items-center space-x-1.5 transition-colors cursor-pointer"
+                className="py-1.5 px-3 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#ededed] text-xs font-medium border border-white/[0.08] flex items-center space-x-1.5 transition-colors cursor-pointer"
               >
-                <FolderOpen className="w-3.5 h-3.5 text-[#85858b]" />
+                <FolderOpen className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Reveal</span>
               </button>
             </div>
@@ -633,20 +671,20 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             {/* Text Preview Box */}
             <div className="flex-1 p-3.5 overflow-y-auto space-y-2">
               <div className="flex items-center justify-between text-xs text-[#85858b]">
-                <span>Extracted text preview</span>
+                <span className="font-medium text-[#a1a1a6]">Extracted text preview</span>
                 <button
                   onClick={handleCopyPreviewText}
                   disabled={!previewContent || isLoadingPreview}
-                  className="text-[11px] text-[#85858b] hover:text-[#ededed] flex items-center space-x-1 transition-colors cursor-pointer disabled:opacity-50"
+                  className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center space-x-1 transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {copiedPreview ? <Check className="w-3 h-3 text-[#4cc38a]" /> : <Copy className="w-3 h-3" />}
+                  {copiedPreview ? <Check className="w-3 h-3 text-[#10b981]" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedPreview ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
 
               {isLoadingPreview ? (
                 <div className="h-40 flex items-center justify-center text-[#85858b] space-x-2 text-xs">
-                  <Loader2 className="w-4 h-4 animate-spin text-[#ededed]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
                   <span>Reading document content...</span>
                 </div>
               ) : (

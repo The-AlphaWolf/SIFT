@@ -72,29 +72,34 @@ export function OrganizationView(): JSX.Element {
       {/* Top Header */}
       <div className="flex items-center justify-between pb-1">
         <div className="space-y-0.5">
-          <h2 className="text-base font-medium text-[#ededed]">Organization</h2>
+          <h2 className="text-base font-semibold text-[#ededed] flex items-center space-x-2">
+            <span>Smart Organization Proposals</span>
+            <span className="w-2 h-2 rounded-full bg-violet-400" />
+          </h2>
           <p className="text-xs text-[#85858b]">
-            Naming and category proposals for unorganized files
+            Naming and category proposals for generic camera names and download artifacts
           </p>
         </div>
         <button
           onClick={loadData}
           disabled={isLoading}
-          className="px-2.5 py-1.5 rounded-lg bg-[#19191b] hover:bg-[#232325] text-[#a1a1a6] hover:text-[#ededed] border border-white/[0.08] text-xs font-normal flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer disabled:opacity-50"
+          className="px-3 py-1.5 rounded-lg bg-[#19191b] hover:bg-[#232325] text-[#ededed] border border-white/[0.08] hover:border-violet-500/30 text-xs font-medium flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#ededed]' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-violet-400' : 'text-violet-400'}`} />
           <span>Refresh suggestions</span>
         </button>
       </div>
 
       {/* Safety Notice */}
-      <div className="p-4 rounded-xl border border-white/[0.08] bg-[#19191b] flex items-start space-x-3">
-        <Sparkles className="w-4 h-4 text-[#85858b] shrink-0 mt-0.5" />
+      <div className="p-4 rounded-xl border border-violet-500/25 bg-gradient-to-r from-violet-950/20 via-[#19191b] to-[#19191b] flex items-start space-x-3">
+        <div className="p-1.5 rounded-md bg-violet-500/15 border border-violet-500/30 shrink-0 mt-0.5">
+          <Sparkles className="w-4 h-4 text-violet-400" />
+        </div>
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <h4 className="text-xs font-medium text-[#ededed]">Interactive proposal mode</h4>
-            <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-[#85858b] border border-white/[0.08] font-mono">
-              Read-only safety
+            <h4 className="text-xs font-semibold text-[#ededed]">Interactive proposal mode</h4>
+            <span className="px-2 py-0.2 rounded text-[10px] bg-violet-500/20 text-violet-300 border border-violet-500/30 font-medium">
+              Read-Only Safety
             </span>
           </div>
           <p className="text-[11px] text-[#85858b] leading-relaxed">
@@ -107,10 +112,10 @@ export function OrganizationView(): JSX.Element {
       <div className="space-y-3">
         {data && data.suggestions.length === 0 && (
           <div className="p-12 text-center rounded-xl border border-white/[0.08] bg-[#19191b] space-y-2">
-            <div className="w-10 h-10 rounded-lg bg-[#232325] border border-white/[0.08] flex items-center justify-center mx-auto">
-              <FileCheck className="w-5 h-5 text-[#4cc38a]" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
+              <FileCheck className="w-5 h-5 text-emerald-400" />
             </div>
-            <h4 className="text-xs font-medium text-[#ededed]">All files organized</h4>
+            <h4 className="text-xs font-semibold text-[#ededed]">All files organized</h4>
             <p className="text-xs text-[#85858b] max-w-sm mx-auto">
               No generic filenames or misclassified documents were identified in your monitored library
             </p>
@@ -123,7 +128,7 @@ export function OrganizationView(): JSX.Element {
             return (
               <div
                 key={item.fileId}
-                className="p-4 rounded-xl border border-white/[0.08] bg-[#19191b] space-y-3"
+                className="p-4 rounded-xl border border-white/[0.08] bg-[#19191b] hover:border-violet-500/30 transition-colors duration-150 space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 overflow-hidden pr-4">
@@ -135,16 +140,16 @@ export function OrganizationView(): JSX.Element {
                       <span className="text-xs font-mono text-[#85858b] line-through">
                         {item.currentPath.split(/[/\\]/).pop()}
                       </span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#85858b] shrink-0" />
-                      <span className="text-xs font-medium text-[#ededed] font-mono bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.08]">
+                      <ArrowRight className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                      <span className="text-xs font-semibold text-emerald-300 font-mono bg-emerald-500/15 px-2.5 py-0.5 rounded border border-emerald-500/30">
                         {item.suggestedFilename}
                       </span>
                       <button
                         onClick={() => handleCopySuggestedName(item.suggestedFilename, item.fileId)}
                         title="Copy suggested filename"
-                        className="p-1 rounded text-[#85858b] hover:text-[#ededed] transition-colors"
+                        className="p-1 rounded text-[#85858b] hover:text-emerald-300 transition-colors"
                       >
-                        {isCopied ? <Check className="w-3 h-3 text-[#4cc38a]" /> : <Copy className="w-3 h-3" />}
+                        {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
@@ -153,16 +158,16 @@ export function OrganizationView(): JSX.Element {
                     <button
                       onClick={() => handleOpen(item.currentPath)}
                       title="Open file"
-                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-violet-600/20 text-[#85858b] hover:text-violet-300 border border-white/[0.08] transition-colors cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleReveal(item.currentPath)}
                       title="Reveal in Explorer"
-                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-violet-600/20 text-[#85858b] hover:text-violet-300 border border-white/[0.08] transition-colors cursor-pointer"
                     >
-                      <FolderOpen className="w-3.5 h-3.5" />
+                      <FolderOpen className="w-3.5 h-3.5 text-violet-400" />
                     </button>
                   </div>
                 </div>
@@ -174,8 +179,8 @@ export function OrganizationView(): JSX.Element {
                     <span className="text-[#a1a1a6]">{item.reason}</span>
                   </div>
                   <div className="flex items-center space-x-1.5 text-[#85858b]">
-                    <Tag className="w-3 h-3 text-[#85858b]" />
-                    <span className="font-mono bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.06] text-[10px] text-[#ededed]">
+                    <Tag className="w-3 h-3 text-violet-400" />
+                    <span className="font-mono bg-violet-500/15 text-violet-300 px-2 py-0.5 rounded border border-violet-500/30 text-[10px] font-medium">
                       {item.suggestedCategory}
                     </span>
                   </div>

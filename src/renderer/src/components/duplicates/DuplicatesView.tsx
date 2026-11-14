@@ -100,43 +100,48 @@ export function DuplicatesView(): JSX.Element {
       {/* Top Header */}
       <div className="flex items-center justify-between pb-1">
         <div className="space-y-0.5">
-          <h2 className="text-base font-medium text-[#ededed]">Duplicates</h2>
+          <h2 className="text-base font-semibold text-[#ededed] flex items-center space-x-2">
+            <span>Exact Duplicate Detection</span>
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+          </h2>
           <p className="text-xs text-[#85858b]">
-            Exact SHA-256 duplicate detection and storage recovery
+            Cryptographic SHA-256 duplicate detection with byte-level precision and storage recovery metrics
           </p>
         </div>
         <button
           onClick={loadData}
           disabled={isLoading}
-          className="px-2.5 py-1.5 rounded-lg bg-[#19191b] hover:bg-[#232325] text-[#a1a1a6] hover:text-[#ededed] border border-white/[0.08] text-xs font-normal flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer disabled:opacity-50"
+          className="px-3 py-1.5 rounded-lg bg-[#19191b] hover:bg-[#232325] text-[#ededed] border border-white/[0.08] hover:border-amber-500/30 text-xs font-medium flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#ededed]' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-amber-400' : 'text-amber-400'}`} />
           <span>Scan again</span>
         </button>
       </div>
 
       {/* Safety Notice & Potential Savings Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 p-4 rounded-xl border border-white/[0.08] bg-[#19191b] flex items-start space-x-3">
-          <ShieldCheck className="w-4 h-4 text-[#85858b] shrink-0 mt-0.5" />
+        <div className="md:col-span-2 p-4 rounded-xl border border-indigo-500/25 bg-gradient-to-r from-indigo-950/20 via-[#19191b] to-[#19191b] flex items-start space-x-3">
+          <div className="p-1.5 rounded-md bg-indigo-500/15 border border-indigo-500/30 shrink-0 mt-0.5">
+            <ShieldCheck className="w-4 h-4 text-indigo-400" />
+          </div>
           <div className="space-y-1">
-            <h4 className="text-xs font-medium text-[#ededed]">Execution safety protocol</h4>
+            <h4 className="text-xs font-semibold text-[#ededed]">Execution safety protocol</h4>
             <p className="text-[11px] text-[#85858b] leading-relaxed">
-              SIFT never deletes or moves files automatically. Inspect duplicate copies and reveal them in File Explorer before manual removal.
+              SIFT operates in read-only analysis mode and never deletes or moves files automatically. Use the "Reveal in Explorer" actions to inspect duplicate copies before choosing to clean them up.
             </p>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-white/[0.08] bg-[#19191b] space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#85858b]">
-            <span>Potential savings</span>
-            <HardDrive className="w-4 h-4 text-[#85858b]" />
+        <div className="p-4 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-[#19191b] to-[#19191b] space-y-1">
+          <div className="flex items-center justify-between text-xs text-amber-400 font-medium">
+            <span>Potential Reclaimable</span>
+            <HardDrive className="w-4 h-4" />
           </div>
-          <div className="text-2xl font-normal text-[#ededed] font-mono tabular-nums">
+          <div className="text-2xl font-bold text-amber-300 font-mono tabular-nums">
             {formatBytes(data?.totalReclaimableBytes || 0)}
           </div>
           <p className="text-[11px] text-[#85858b] font-mono tabular-nums">
-            Across {data?.totalGroups || 0} duplicate sets
+            Across {data?.totalGroups || 0} redundant duplicate sets
           </p>
         </div>
       </div>
@@ -145,10 +150,10 @@ export function DuplicatesView(): JSX.Element {
       <div className="space-y-3">
         {data && data.groups.length === 0 && (
           <div className="p-12 text-center rounded-xl border border-white/[0.08] bg-[#19191b] space-y-2">
-            <div className="w-10 h-10 rounded-lg bg-[#232325] border border-white/[0.08] flex items-center justify-center mx-auto">
-              <Check className="w-5 h-5 text-[#4cc38a]" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
+              <Check className="w-5 h-5 text-emerald-400" />
             </div>
-            <h4 className="text-xs font-medium text-[#ededed]">No duplicate files detected</h4>
+            <h4 className="text-xs font-semibold text-[#ededed]">No duplicate files detected</h4>
             <p className="text-xs text-[#85858b]">
               All indexed files have unique SHA-256 cryptographic hashes
             </p>
@@ -161,7 +166,7 @@ export function DuplicatesView(): JSX.Element {
             return (
               <div
                 key={group.sha256Hash}
-                className="rounded-xl border border-white/[0.08] bg-[#19191b] overflow-hidden"
+                className="rounded-xl border border-white/[0.08] bg-[#19191b] overflow-hidden hover:border-amber-500/30 transition-colors duration-150"
               >
                 {/* Group Summary Row */}
                 <div
@@ -171,17 +176,17 @@ export function DuplicatesView(): JSX.Element {
                   <div className="flex items-center space-x-3">
                     <button className="text-[#85858b]">
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-[#ededed]" />
+                        <ChevronDown className="w-4 h-4 text-amber-400" />
                       ) : (
                         <ChevronRight className="w-4 h-4 text-[#85858b]" />
                       )}
                     </button>
                     <div className="space-y-0.5">
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs font-medium text-[#ededed]">
+                        <span className="text-xs font-semibold text-[#ededed]">
                           {group.fileCount} identical copies
                         </span>
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-[#ededed] border border-white/[0.08] font-mono tabular-nums">
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono font-medium tabular-nums">
                           {formatBytes(group.reclaimableBytes)} reclaimable
                         </span>
                       </div>
@@ -198,13 +203,13 @@ export function DuplicatesView(): JSX.Element {
                         handleCopyAllInGroup(group.files);
                       }}
                       title="Copy all paths in group"
-                      className="text-[11px] text-[#85858b] hover:text-[#ededed] px-2 py-1 rounded bg-[#232325] hover:bg-white/[0.12] border border-white/[0.08] transition-colors flex items-center space-x-1"
+                      className="text-[11px] text-[#a1a1a6] hover:text-[#ededed] px-2.5 py-1 rounded bg-[#232325] hover:bg-amber-500/20 hover:border-amber-500/30 border border-white/[0.08] transition-colors flex items-center space-x-1"
                     >
-                      <Copy className="w-3 h-3" />
+                      <Copy className="w-3 h-3 text-amber-400" />
                       <span>Copy set</span>
                     </button>
 
-                    <span className="font-mono tabular-nums text-xs text-[#a1a1a6]">
+                    <span className="font-mono tabular-nums text-xs text-[#ededed] font-medium">
                       {formatBytes(group.sizeBytes)} <span className="text-[#85858b] font-sans text-[11px]">each</span>
                     </span>
                   </div>
@@ -224,21 +229,21 @@ export function DuplicatesView(): JSX.Element {
                           <div className="space-y-1 overflow-hidden pr-4">
                             <div className="flex items-center space-x-2">
                               <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                className={`text-[10px] px-2 py-0.5 rounded font-mono font-medium ${
                                   isOldest
-                                    ? 'bg-white/[0.08] text-[#ededed] border border-white/[0.12]'
-                                    : 'bg-white/[0.03] text-[#85858b] border border-white/[0.06]'
+                                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                                    : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
                                 }`}
                               >
                                 {isOldest ? 'Earliest copy' : `Duplicate #${idx + 1}`}
                               </span>
-                              <span className="font-mono text-[11px] text-[#a1a1a6] truncate">
+                              <span className="font-mono text-[11px] text-[#ededed] truncate">
                                 {file.filePath}
                               </span>
                             </div>
                             <div className="flex items-center space-x-3 text-[10px] text-[#85858b] font-mono tabular-nums">
                               <span className="flex items-center space-x-1">
-                                <Clock className="w-3 h-3 text-[#85858b]" />
+                                <Clock className="w-3 h-3 text-blue-400" />
                                 <span>Modified: {formatDate(file.modifiedAt)}</span>
                               </span>
                             </div>
@@ -248,22 +253,22 @@ export function DuplicatesView(): JSX.Element {
                             <button
                               onClick={() => handleCopyPath(file.filePath, file.id)}
                               title="Copy file path"
-                              className="p-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors cursor-pointer"
                             >
-                              {isCopied ? <Check className="w-3.5 h-3.5 text-[#4cc38a]" /> : <Copy className="w-3.5 h-3.5" />}
+                              {isCopied ? <Check className="w-3.5 h-3.5 text-[#10b981]" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
                             <button
                               onClick={() => handleOpen(file.filePath)}
                               title="Open file"
-                              className="p-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#85858b] hover:text-[#ededed] border border-white/[0.08] transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#232325] hover:bg-indigo-600/20 text-[#85858b] hover:text-indigo-300 border border-white/[0.08] transition-colors cursor-pointer"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleReveal(file.filePath)}
-                              className="px-2.5 py-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#ededed] border border-white/[0.08] text-[11px] font-normal flex items-center space-x-1.5 transition-colors cursor-pointer"
+                              className="px-2.5 py-1.5 rounded-lg bg-[#232325] hover:bg-amber-500/20 hover:text-amber-300 text-[#ededed] border border-white/[0.08] hover:border-amber-500/30 text-[11px] font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
                             >
-                              <FolderOpen className="w-3.5 h-3.5 text-[#85858b]" />
+                              <FolderOpen className="w-3.5 h-3.5 text-amber-400" />
                               <span>Reveal</span>
                             </button>
                           </div>
