@@ -1,5 +1,5 @@
 import React from 'react';
-import { HardDrive, Sparkles, FolderOpen, ArrowRight, ShieldCheck, X } from 'lucide-react';
+import { HardDrive, Sparkles, FolderOpen, ShieldCheck, X } from 'lucide-react';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -29,58 +29,58 @@ export function OnboardingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-zinc-700/80 bg-zinc-900 shadow-2xl p-6 space-y-6 text-zinc-100 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 select-none">
+      <div className="w-full max-w-md rounded-xl border border-white/[0.1] bg-[#19191b] shadow-2xl p-6 space-y-5 text-[#ededed] relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+          className="absolute top-4 right-4 p-1 rounded-md text-[#85858b] hover:text-[#ededed] hover:bg-[#232325] transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-            <HardDrive className="w-6 h-6 text-white" />
+          <div className="w-9 h-9 rounded-lg bg-[#232325] border border-white/[0.08] flex items-center justify-center shrink-0">
+            <HardDrive className="w-4 h-4 text-[#ededed]" />
           </div>
-          <div>
-            <h3 className="text-base font-bold text-zinc-100">Welcome to SIFT</h3>
-            <p className="text-xs text-zinc-400">Your Local-First Intelligent File Librarian</p>
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-medium text-[#ededed]">SIFT</h3>
+            <p className="text-xs text-[#85858b]">Local file librarian</p>
           </div>
         </div>
 
-        <div className="space-y-3 text-xs text-zinc-300 leading-relaxed">
+        <div className="space-y-3 text-xs text-[#a1a1a6] leading-relaxed">
           <p>
-            SIFT transforms your unorganized documents into a fast, searchable personal library without sending any data to the cloud.
+            SIFT indexes your documents locally with hybrid BM25 and vector search without sending any telemetry or files to the cloud.
           </p>
           <div className="space-y-2 pt-1">
             <div className="flex items-start space-x-2.5">
-              <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+              <Sparkles className="w-4 h-4 text-[#85858b] shrink-0 mt-0.5" />
               <span>
-                <strong>Natural-Language Search:</strong> Find files by describing what you remember (e.g. <em>"microwave engineering waveguide notes"</em>).
+                <strong className="text-[#ededed]">Hybrid Search:</strong> Match full-text contents, filenames, and semantic embeddings offline.
               </span>
             </div>
             <div className="flex items-start space-x-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 text-[#4cc38a] shrink-0 mt-0.5" />
               <span>
-                <strong>100% Offline & Private:</strong> Runs locally on your machine with SQLite FTS5, ONNX MiniLM vector search, and Ollama or LM Studio.
+                <strong className="text-[#ededed]">Local & Private:</strong> Single-writer SQLite WAL database on local NVMe disk.
               </span>
             </div>
           </div>
         </div>
 
-        <div className="pt-2 flex items-center justify-between">
+        <div className="pt-2 flex items-center justify-between border-t border-white/[0.06]">
           <button
             onClick={onClose}
-            className="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="text-xs text-[#85858b] hover:text-[#ededed] px-3 py-1.5 rounded-lg hover:bg-[#232325] transition-colors cursor-pointer"
           >
             Skip for now
           </button>
           <button
             onClick={handleSelect}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center space-x-2 transition-all"
+            className="px-3.5 py-1.5 rounded-lg bg-[#ededed] hover:bg-white text-[#141415] text-xs font-medium surface-highlight flex items-center space-x-2 transition-colors cursor-pointer"
           >
-            <FolderOpen className="w-4 h-4" />
-            <span>Select First Folder to Index</span>
+            <FolderOpen className="w-3.5 h-3.5" />
+            <span>Select root directory</span>
           </button>
         </div>
       </div>

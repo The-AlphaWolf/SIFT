@@ -41,51 +41,51 @@ export function StatusBar(): JSX.Element {
     : 0;
 
   return (
-    <footer className="h-9 border-t border-zinc-800/80 bg-zinc-950/90 px-4 flex items-center justify-between text-xs text-zinc-400 select-none">
-      <div className="flex items-center space-x-3 overflow-hidden">
+    <footer className="h-8 border-t border-white/[0.08] bg-[#0f0f10] px-3.5 flex items-center justify-between text-xs text-[#85858b] select-none shrink-0">
+      <div className="flex items-center space-x-2.5 overflow-hidden">
         {isBusy ? (
           <div className="flex items-center space-x-2">
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400 shrink-0" />
-            <span className="font-semibold text-zinc-200 capitalize">
-              {progress.stage}...
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#ededed] shrink-0" />
+            <span className="text-[#ededed] font-medium capitalize">
+              {progress.stage}
             </span>
-            <span className="text-zinc-500 font-mono text-[11px]">
+            <span className="text-[#85858b] font-mono tabular-nums text-[11px]">
               [{progress.processedFiles} / {progress.totalFiles} • {percent}%]
             </span>
-            <span className="text-[11px] text-zinc-500 truncate max-w-md font-mono hidden md:inline">
+            <span className="text-[11px] text-[#85858b] truncate max-w-md font-mono hidden md:inline">
               {progress.currentFilePath}
             </span>
           </div>
         ) : (
-          <div className="flex items-center space-x-2 text-zinc-400">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/80 shrink-0" />
-            <span>Library index up to date</span>
+          <div className="flex items-center space-x-1.5 text-[#85858b]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#4cc38a] shrink-0" />
+            <span className="text-[#a1a1a6]">Library index up to date</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2.5">
         {isBusy && (
           <div className="flex items-center space-x-1">
             <button
               onClick={handlePauseResume}
               title={progress.isPaused ? 'Resume Indexing' : 'Pause Indexing'}
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-300 transition-colors"
+              className="p-1 rounded hover:bg-[#232325] text-[#a1a1a6] hover:text-[#ededed] transition-colors"
             >
-              {progress.isPaused ? <Play className="w-3 h-3 text-emerald-400" /> : <Pause className="w-3 h-3 text-amber-400" />}
+              {progress.isPaused ? <Play className="w-3 h-3 text-[#4cc38a]" /> : <Pause className="w-3 h-3 text-[#f59e0b]" />}
             </button>
             <button
               onClick={handleCancel}
               title="Cancel Indexing"
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-300 transition-colors"
+              className="p-1 rounded hover:bg-[#232325] text-[#85858b] hover:text-[#e5484d] transition-colors"
             >
-              <XSquare className="w-3 h-3 text-rose-400" />
+              <XSquare className="w-3 h-3" />
             </button>
           </div>
         )}
-        <div className="h-3 w-px bg-zinc-800 mx-1" />
-        <span className="flex items-center space-x-1.5 text-[11px] text-zinc-500">
-          <HardDrive className="w-3 h-3 text-zinc-500" />
+        <div className="h-3 w-px bg-white/[0.08]" />
+        <span className="flex items-center space-x-1.5 text-[11px] text-[#85858b]">
+          <HardDrive className="w-3 h-3 text-[#85858b]" />
           <span>Local SQLite & FTS5</span>
         </span>
       </div>

@@ -4,40 +4,37 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 239 84% 67%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.5rem;
+    --bg-deep: #0f0f10;
+    --bg-page: #141415;
+    --bg-card: #19191b;
+    --bg-raised: #232325;
+    --border-hairline: rgba(255, 255, 255, 0.08);
+    --text-primary: #ededed;
+    --text-secondary: #a1a1a6;
+    --text-muted: #85858b;
+    --accent: #f59e0b;
+    --accent-dim: rgba(245, 158, 11, 0.12);
   }
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
   user-select: none;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom sleek dark scrollbar */
+/* Tabular figures for numbers, timestamps, sizes */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle, quiet scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -45,35 +42,22 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 9999px;
-  transition: background 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: background 0.15s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Custom text selection */
+/* Quiet neutral selection */
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ededed;
 }
 
-/* Subtle glow utility */
-.glow-card {
-  position: relative;
-}
-.glow-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), transparent 60%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+/* Top highlight for active surfaces and buttons */
+.surface-highlight {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }

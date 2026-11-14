@@ -110,118 +110,120 @@ export function LibraryView({ onSelectCategory }: LibraryViewProps): JSX.Element
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-zinc-950">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#141415] text-[#ededed]">
       {/* Top Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-1">
         <div className="space-y-0.5">
-          <h2 className="text-lg font-bold text-zinc-100">Library Folders & Categories</h2>
-          <p className="text-xs text-zinc-400">
-            Configure root directories for recursive indexing, real-time filesystem watchers, and categories.
+          <h2 className="text-base font-medium text-[#ededed]">Folders & Categories</h2>
+          <p className="text-xs text-[#85858b]">
+            Monitored directories and automated classification targets
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleReindex()}
-            className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/60 text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg bg-[#19191b] hover:bg-[#232325] text-[#a1a1a6] hover:text-[#ededed] border border-white/[0.08] text-xs font-normal flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Reindex All</span>
+            <span>Reindex all</span>
           </button>
           <button
             onClick={handleAddFolder}
-            className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center space-x-1.5 transition-all cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-[#ededed] hover:bg-white text-[#141415] text-xs font-medium surface-highlight flex items-center space-x-1.5 transition-colors duration-150 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Folder</span>
+            <span>Add folder</span>
           </button>
         </div>
       </div>
 
       {/* Folders List */}
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/30 overflow-hidden space-y-0 shadow-sm">
-        <div className="px-5 py-3 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/50">
+      <div className="rounded-xl border border-white/[0.08] bg-[#19191b] overflow-hidden space-y-0">
+        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <FolderOpen className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-xs font-semibold text-zinc-200">Monitored Directories</h3>
+            <FolderOpen className="w-4 h-4 text-[#85858b]" />
+            <h3 className="text-xs font-medium text-[#ededed]">Monitored directories</h3>
           </div>
-          <span className="text-[11px] text-zinc-500 font-mono">{folders.length} configured</span>
+          <span className="text-[11px] text-[#85858b] font-mono tabular-nums">
+            {folders.length} configured
+          </span>
         </div>
 
         {folders.length === 0 ? (
           <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto">
-              <FolderOpen className="w-6 h-6 text-zinc-600" />
+            <div className="w-10 h-10 rounded-lg bg-[#232325] border border-white/[0.08] flex items-center justify-center mx-auto">
+              <FolderOpen className="w-5 h-5 text-[#85858b]" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-zinc-300">No folders added yet</p>
-              <p className="text-[11px] text-zinc-500 max-w-sm mx-auto">
-                Click "+ Add Folder" to select folders from your PC for local indexing and search.
+              <p className="text-xs font-medium text-[#ededed]">No folders monitored yet</p>
+              <p className="text-[11px] text-[#85858b] max-w-sm mx-auto">
+                Add a directory to begin recursive full-text and vector indexing
               </p>
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-white/[0.06]">
             {folders.map((folder) => {
               const isReindexing = reindexingFolderId === folder.id;
               const isCopied = copiedFolderId === folder.id;
               return (
                 <div
                   key={folder.id}
-                  className="p-5 flex items-start justify-between hover:bg-zinc-900/50 transition-colors group"
+                  className="p-4 flex items-start justify-between hover:bg-[#232325]/40 transition-colors duration-150 group"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2.5">
-                      <h4 className="text-sm font-semibold text-zinc-200 group-hover:text-indigo-300 transition-colors">
+                      <h4 className="text-sm font-medium text-[#ededed]">
                         {folder.displayName}
                       </h4>
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-500/20 flex items-center space-x-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>Win32 Watcher Active</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] bg-[#232325] text-[#4cc38a] border border-white/[0.08] flex items-center space-x-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4cc38a]" />
+                        <span>Watcher active</span>
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <p className="text-xs text-zinc-500 font-mono truncate max-w-xl">
+                      <p className="text-xs text-[#85858b] font-mono truncate max-w-xl">
                         {folder.folderPath}
                       </p>
                       <button
                         onClick={() => handleCopyFolderPath(folder.folderPath, folder.id)}
-                        className="text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors cursor-pointer"
+                        className="text-[#85858b] hover:text-[#ededed] p-0.5 rounded transition-colors cursor-pointer"
                         title="Copy Path"
                       >
-                        {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {isCopied ? <Check className="w-3 h-3 text-[#4cc38a]" /> : <Copy className="w-3 h-3" />}
                       </button>
                     </div>
 
-                    <div className="flex items-center space-x-4 text-[11px] text-zinc-400 pt-1">
-                      <span className="flex items-center space-x-1">
-                        <Files className="w-3.5 h-3.5 text-zinc-500" />
+                    <div className="flex items-center space-x-4 text-[11px] text-[#85858b] pt-0.5 font-mono tabular-nums">
+                      <span className="flex items-center space-x-1.5">
+                        <Files className="w-3.5 h-3.5 text-[#85858b]" />
                         <span>{folder.fileCount.toLocaleString()} files</span>
                       </span>
-                      <span className="flex items-center space-x-1">
-                        <HardDrive className="w-3.5 h-3.5 text-zinc-500" />
+                      <span className="flex items-center space-x-1.5">
+                        <HardDrive className="w-3.5 h-3.5 text-[#85858b]" />
                         <span>{formatBytes(folder.totalSizeBytes)}</span>
                       </span>
-                      <span className="flex items-center space-x-1">
-                        <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-                        <span>Last Scanned: {formatDate(folder.lastScannedAt)}</span>
+                      <span className="flex items-center space-x-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#85858b]" />
+                        <span>Last scanned: {formatDate(folder.lastScannedAt)}</span>
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5">
                     <button
                       onClick={() => handleReindex(folder.id)}
                       disabled={isReindexing}
-                      title="Reindex this folder"
-                      className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors disabled:opacity-50 cursor-pointer"
+                      title="Reindex folder"
+                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-white/[0.12] text-[#a1a1a6] hover:text-[#ededed] border border-white/[0.08] transition-colors disabled:opacity-50 cursor-pointer"
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 ${isReindexing ? 'animate-spin text-indigo-400' : ''}`} />
+                      <RefreshCw className={`w-3.5 h-3.5 ${isReindexing ? 'animate-spin text-[#ededed]' : ''}`} />
                     </button>
                     <button
                       onClick={() => handleRemoveFolder(folder)}
-                      title="Remove folder from library"
-                      className="p-2 rounded-lg bg-zinc-800 hover:bg-rose-950/60 hover:text-rose-400 text-zinc-400 transition-colors cursor-pointer"
+                      title="Stop monitoring"
+                      className="p-1.5 rounded-lg bg-[#232325] hover:bg-[#e5484d]/20 hover:text-[#e5484d] text-[#85858b] border border-white/[0.08] transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -234,38 +236,32 @@ export function LibraryView({ onSelectCategory }: LibraryViewProps): JSX.Element
       </div>
 
       {/* Categories Explorer */}
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/30 overflow-hidden space-y-0 shadow-sm">
-        <div className="px-5 py-3 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/50">
+      <div className="rounded-xl border border-white/[0.08] bg-[#19191b] overflow-hidden space-y-0">
+        <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Tag className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-xs font-semibold text-zinc-200">Library Categories</h3>
+            <Tag className="w-4 h-4 text-[#85858b]" />
+            <h3 className="text-xs font-medium text-[#ededed]">Categories</h3>
           </div>
-          <span className="text-[11px] text-zinc-500 font-mono">Click a category to browse files</span>
+          <span className="text-[11px] text-[#85858b]">Select to filter search</span>
         </div>
 
-        <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
           {categories.map((cat) => (
             <div
               key={cat.name}
               onClick={() => onSelectCategory?.(cat.name)}
-              className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 space-y-2 hover:border-indigo-500/50 hover:bg-zinc-900/80 transition-all cursor-pointer group shadow-sm"
+              className="p-3 rounded-lg border border-white/[0.08] bg-[#232325]/50 space-y-2 hover:bg-[#232325] hover:border-white/[0.14] transition-colors duration-150 cursor-pointer group"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: cat.colorHex }}
-                  />
-                  <h4 className="text-xs font-semibold text-zinc-200 group-hover:text-indigo-300 transition-colors">
-                    {cat.name}
-                  </h4>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                <span className="text-xs font-medium text-[#ededed] group-hover:text-white transition-colors">
+                  {cat.name}
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#85858b] group-hover:text-[#ededed] transition-colors" />
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+              <div className="flex items-center justify-between text-[11px] text-[#85858b] font-mono tabular-nums">
                 <span>{(cat.fileCount || 0).toLocaleString()} files</span>
-                <span className="text-zinc-500">{formatBytes(cat.totalSizeBytes || 0)}</span>
+                <span>{formatBytes(cat.totalSizeBytes || 0)}</span>
               </div>
             </div>
           ))}
