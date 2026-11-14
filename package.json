@@ -18,6 +18,36 @@
     "test:watch": "vitest",
     "test:integration": "electron ./tests/integration/test-db-integration.js"
   },
+  "build": {
+    "appId": "com.sift.librarian",
+    "productName": "SIFT",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**",
+      "**/node_modules/sqlite-vec/**",
+      "**/node_modules/@parcel/watcher/**"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SIFT File Librarian"
+    }
+  },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
