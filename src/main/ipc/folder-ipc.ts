@@ -10,6 +10,8 @@ import {
   deleteFolder,
   getAllFolders,
 } from '../services/db/queries/folder-queries';
+import { IndexerService } from '../services/indexer/indexer-service';
+import { WatcherManager } from '../services/watcher/parcel-watcher';
 
 const addFolderSchema = z.object({
   folderPath: z
@@ -66,12 +68,21 @@ export function registerFolderIpc(): void {
     };
 
     insertFolder(db, newFolder);
+
+    // Watch directory with native ReadDirectoryChangesW
+    await WatcherManager.getInstance().watchFolder(newFolder.id, newFolder.folderPath);
+
+    // Trigger initial recursive scan and extraction in background
+    IndexerService.getInstance().indexFolder(newFolder.id, newFolder.folderPath);
+
     return newFolder;
   });
 
   ipcMain.handle(IPC_CHANNELS.FOLDER_REMOVE, async (_event, rawId: unknown) => {
     const { folderId } = removeFolderSchema.parse({ folderId: rawId });
     const db = getDatabase();
+
+    await WatcherManager.getInstance().unwatchFolder(folderId);
     deleteFolder(db, folderId);
   });
 
@@ -81,6 +92,20 @@ export function registerFolderIpc(): void {
   });
 
   ipcMain.handle(IPC_CHANNELS.FOLDER_REINDEX, async (_event, folderId?: unknown) => {
-    console.log(`[FolderIPC] Reindex requested for folderId: ${folderId || 'ALL'}`);
+    const db = getDatabase();
+    const all = getAllFolders(db);
+
+    if (folderId && typeof folderId === 'string') {
+      const match = all.find((f) => f.id === folderId);
+      if (match) {
+        IndexerService.getInstance().indexFolder(match.id, match.folderPath);
+      }
+    } else {
+      for (const f of all) {
+        if (f.isActive) {
+          IndexerService.getInstance().indexFolder(f.id, f.folderPath);
+        }
+      }
+    }
   });
 }

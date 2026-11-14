@@ -21,9 +21,12 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@parcel/watcher": "^2.6.0",
     "better-sqlite3": "^11.8.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
+    "mammoth": "^1.13.0",
+    "pdfjs-dist": "^6.5.438",
     "sqlite-vec": "^0.1.9",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.23.8"
