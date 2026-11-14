@@ -66,6 +66,14 @@ export function DashboardView({
 
   useEffect(() => {
     loadData();
+
+    if (!window.api?.onIndexingProgress) return;
+    const unsubscribe = window.api.onIndexingProgress((event) => {
+      if (event.stage === 'idle') {
+        loadData();
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const totalFiles = stats?.totalFiles || 0;

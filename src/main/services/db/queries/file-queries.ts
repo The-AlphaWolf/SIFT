@@ -2,7 +2,14 @@ import type Database from 'better-sqlite3';
 import type { FileRecord } from '../../../../shared/types/models';
 import type { DuplicateGroup, SystemStats } from '../../../../shared/contracts/ipc-api';
 
-export function upsertFileRecord(db: Database.Database, file: FileRecord): void {
+export function upsertFileRecord(db: Database.Database, file: FileRecord): string {
+  // Check if file already exists with this absolute_path
+  const existing = db
+    .prepare('SELECT id FROM files WHERE absolute_path = ?')
+    .get(file.absolutePath) as { id: string } | undefined;
+
+  const activeId = existing?.id || file.id;
+
   const stmt = db.prepare(`
     INSERT INTO files (
       id, folder_id, relative_path, absolute_path, filename, extension,
@@ -27,7 +34,7 @@ export function upsertFileRecord(db: Database.Database, file: FileRecord): void 
   `);
 
   stmt.run({
-    id: file.id,
+    id: activeId,
     folderId: file.folderId,
     relativePath: file.relativePath,
     absolutePath: file.absolutePath,
@@ -43,6 +50,8 @@ export function upsertFileRecord(db: Database.Database, file: FileRecord): void 
     category: file.category || 'Miscellaneous',
     isDeleted: file.isDeleted ? 1 : 0,
   });
+
+  return activeId;
 }
 
 export function markFileDeleted(db: Database.Database, absolutePath: string): void {

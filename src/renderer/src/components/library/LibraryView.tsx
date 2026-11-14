@@ -43,6 +43,14 @@ export function LibraryView(): JSX.Element {
 
   useEffect(() => {
     loadData();
+
+    if (!window.api?.onIndexingProgress) return;
+    const unsubscribe = window.api.onIndexingProgress((event) => {
+      if (event.stage === 'idle') {
+        loadData();
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleAddFolder = async () => {

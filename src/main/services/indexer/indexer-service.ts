@@ -1,4 +1,6 @@
 import { BrowserWindow } from 'electron';
+import * as crypto from 'crypto';
+import * as path from 'path';
 import { scanDirectory, type ScannedFileInfo } from '../../../workers/indexer/scanner';
 import { processFile } from '../../../workers/indexer';
 import type { TextChunk } from '../../../workers/indexer/text-chunker';
@@ -30,9 +32,12 @@ export class IndexerService {
     return IndexerService.instance;
   }
 
+  public getStatus(): { isIndexing: boolean; isPaused: boolean } {
+    return { isIndexing: this.isIndexing, isPaused: this.isPaused };
+  }
+
   public pause(): void {
     this.isPaused = true;
-    this.broadcastProgress('idle', 0, 0, '', true);
   }
 
   public resume(): void {
@@ -78,64 +83,70 @@ export class IndexerService {
 
         this.broadcastProgress('extracting', total, processed, fileInfo.absolutePath, false);
 
-        // Process file: extract text and chunk
-        const result = await processFile(fileInfo);
+        try {
+          // Process file: extract text and chunk
+          const result = await processFile(fileInfo);
 
-        // Single-Writer Database Insertion
-        const fileId = `file-${Buffer.from(fileInfo.absolutePath).toString('base64url').substring(0, 32)}`;
-        
-        const fileRecord: FileRecord = {
-          id: fileId,
-          folderId: fileInfo.folderId,
-          relativePath: fileInfo.relativePath,
-          absolutePath: fileInfo.absolutePath,
-          filename: fileInfo.filename,
-          extension: fileInfo.extension,
-          sizeBytes: fileInfo.sizeBytes,
-          createdAt: fileInfo.createdAt,
-          modifiedAt: fileInfo.modifiedAt,
-          indexedAt: new Date().toISOString(),
-          sha256Hash: result.sha256Hash,
-          hashStatus: result.sha256Hash ? 'COMPLETED' : 'PENDING',
-          extractionStatus: result.extractionStatus,
-          category: categorizeFile({
-            filename: fileInfo.filename,
-            extension: fileInfo.extension,
+          // Full deterministic SHA-256 hash of normalized absolute path prevents ID collision
+          const normalized = path.normalize(fileInfo.absolutePath).toLowerCase();
+          const fileId = `file-${crypto.createHash('sha256').update(normalized).digest('hex')}`;
+
+          const fileRecord: FileRecord = {
+            id: fileId,
+            folderId: fileInfo.folderId,
             relativePath: fileInfo.relativePath,
             absolutePath: fileInfo.absolutePath,
-          }),
-          isDeleted: false,
-        };
+            filename: fileInfo.filename,
+            extension: fileInfo.extension,
+            sizeBytes: fileInfo.sizeBytes,
+            createdAt: fileInfo.createdAt,
+            modifiedAt: fileInfo.modifiedAt,
+            indexedAt: new Date().toISOString(),
+            sha256Hash: result.sha256Hash,
+            hashStatus: result.sha256Hash ? 'COMPLETED' : 'PENDING',
+            extractionStatus: result.extractionStatus,
+            category: categorizeFile({
+              filename: fileInfo.filename,
+              extension: fileInfo.extension,
+              relativePath: fileInfo.relativePath,
+              absolutePath: fileInfo.absolutePath,
+            }),
+            isDeleted: false,
+          };
 
-        upsertFileRecord(db, fileRecord);
+          const actualFileId = upsertFileRecord(db, fileRecord);
 
-        // If chunks extracted, insert into file_content (which synchronizes FTS5 automatically via triggers)
-        if (result.chunks.length > 0) {
-          insertFileChunks(
-            db,
-            fileId,
-            fileInfo.filename,
-            result.chunks.map((c: TextChunk) => ({
-              chunkIndex: c.chunkIndex,
-              chunkText: c.chunkText,
-              tokenCount: c.tokenCount,
-            }))
-          );
+          // If chunks extracted, insert into file_content (which synchronizes FTS5 automatically via triggers)
+          if (result.chunks.length > 0) {
+            insertFileChunks(
+              db,
+              actualFileId,
+              fileInfo.filename,
+              result.chunks.map((c: TextChunk) => ({
+                chunkIndex: c.chunkIndex,
+                chunkText: c.chunkText,
+                tokenCount: c.tokenCount,
+              }))
+            );
 
-          // Generate embeddings and store in sqlite-vec
-          for (const chunk of result.chunks) {
-            try {
-              const embedding = await generateEmbedding(chunk.chunkText);
-              const chunkRow = db
-                .prepare('SELECT id FROM file_content WHERE file_id = ? AND chunk_index = ?')
-                .get(fileId, chunk.chunkIndex) as any;
-              if (chunkRow?.id) {
-                insertVectorEmbedding(db, chunkRow.id, fileId, embedding);
+            // Generate embeddings for top chunks to ensure fast indexing
+            const chunksToEmbed = result.chunks.slice(0, 5);
+            for (const chunk of chunksToEmbed) {
+              try {
+                const embedding = await generateEmbedding(chunk.chunkText);
+                const chunkRow = db
+                  .prepare('SELECT id FROM file_content WHERE file_id = ? AND chunk_index = ?')
+                  .get(actualFileId, chunk.chunkIndex) as any;
+                if (chunkRow?.id) {
+                  insertVectorEmbedding(db, chunkRow.id, actualFileId, embedding);
+                }
+              } catch (vecErr) {
+                console.warn('[IndexerService] Vector embedding error for chunk:', vecErr);
               }
-            } catch (vecErr) {
-              console.warn('[IndexerService] Vector embedding error for chunk:', vecErr);
             }
           }
+        } catch (fileErr) {
+          console.warn(`[IndexerService] Error processing file ${fileInfo.absolutePath}:`, fileErr);
         }
 
         processed++;
