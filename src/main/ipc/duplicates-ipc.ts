@@ -7,6 +7,7 @@ import type {
 } from '../../shared/contracts/ipc-api';
 import { getDatabase } from '../services/db/connection';
 import { getDuplicateGroupsQuery } from '../services/db/queries/file-queries';
+import { generateOrganizationSuggestions } from '../services/organization/suggestion-service';
 
 const paginationSchema = z.object({
   limit: z.number().int().min(1).max(500).optional().default(50),
@@ -26,11 +27,9 @@ export function registerDuplicatesIpc(): void {
   ipcMain.handle(
     IPC_CHANNELS.ORGANIZATION_SUGGESTIONS,
     async (_event, rawOptions: unknown): Promise<OrganizationResponse> => {
-      paginationSchema.parse(rawOptions || {});
-      return {
-        suggestions: [],
-        totalCount: 0,
-      };
+      const options = paginationSchema.parse(rawOptions || {});
+      const db = getDatabase();
+      return generateOrganizationSuggestions(db, options.limit, options.offset);
     }
   );
 }

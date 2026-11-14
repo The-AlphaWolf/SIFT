@@ -11,6 +11,7 @@ import {
 import { updateFolderScanTimestamp } from '../db/queries/folder-queries';
 import { generateEmbedding } from '../../../workers/embedder/onnx-runner';
 import { insertVectorEmbedding } from '../search/vector-engine';
+import { categorizeFile } from '../categorization/rule-categorizer';
 import { IPC_CHANNELS, type IndexingProgressEvent } from '../../../shared/contracts/ipc-api';
 import type { FileRecord } from '../../../shared/types/models';
 
@@ -97,7 +98,12 @@ export class IndexerService {
           sha256Hash: result.sha256Hash,
           hashStatus: result.sha256Hash ? 'COMPLETED' : 'PENDING',
           extractionStatus: result.extractionStatus,
-          category: 'Miscellaneous',
+          category: categorizeFile({
+            filename: fileInfo.filename,
+            extension: fileInfo.extension,
+            relativePath: fileInfo.relativePath,
+            absolutePath: fileInfo.absolutePath,
+          }),
           isDeleted: false,
         };
 
