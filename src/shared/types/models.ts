@@ -41,6 +41,7 @@ export interface FileRecord {
 export interface FileContentChunk {
   id: number;
   fileId: string;
+  filename: string;
   chunkIndex: number;
   chunkText: string;
   tokenCount: number;

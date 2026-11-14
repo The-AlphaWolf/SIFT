@@ -4,6 +4,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { IPC_CHANNELS } from '../../shared/contracts/ipc-api';
 import type { SearchResponse } from '../../shared/contracts/ipc-api';
+import { getDatabase } from '../services/db/connection';
+import { searchFtsQuery } from '../services/db/queries/fts-queries';
 
 const searchOptionsSchema = z.object({
   useAiInterpretation: z.boolean().optional().default(true),
@@ -27,7 +29,6 @@ const filePathSchema = z.object({
     .refine((p) => !p.includes('..'), 'Path traversal not allowed'),
 });
 
-// Prohibited executable extensions for security threat model mitigation
 const PROHIBITED_EXECUTABLE_EXTS = new Set([
   '.exe',
   '.bat',
@@ -44,14 +45,23 @@ export function registerSearchIpc(): void {
     IPC_CHANNELS.SEARCH_EXECUTE,
     async (_event, query: unknown, rawOptions: unknown): Promise<SearchResponse> => {
       const parsedQuery = typeof query === 'string' ? query.trim() : '';
-      searchOptionsSchema.parse(rawOptions || {});
+      const options = searchOptionsSchema.parse(rawOptions || {});
 
       const startTime = performance.now();
+      const db = getDatabase();
 
-      // Placeholder until Phase 2 & 4 hybrid search integration
+      const ftsResult = searchFtsQuery(db, parsedQuery, {
+        limit: options.limit,
+        offset: options.offset,
+        extensions: options.filters?.extensions,
+        category: options.filters?.category,
+        dateAfter: options.filters?.dateAfter,
+        dateBefore: options.filters?.dateBefore,
+      });
+
       return {
-        results: [],
-        totalCount: 0,
+        results: ftsResult.results,
+        totalCount: ftsResult.totalCount,
         queryInterpreted: {
           rawQuery: parsedQuery,
           keywords: parsedQuery ? parsedQuery.split(/\s+/) : [],
@@ -63,8 +73,20 @@ export function registerSearchIpc(): void {
   );
 
   ipcMain.handle(IPC_CHANNELS.SEARCH_PREVIEW, async (_event, fileId: unknown) => {
+    const db = getDatabase();
+    const row = db
+      .prepare('SELECT chunk_text FROM file_content WHERE file_id = ? ORDER BY chunk_index ASC LIMIT 5')
+      .all(String(fileId)) as Array<{ chunk_text: string }>;
+
+    if (!row || row.length === 0) {
+      return {
+        content: 'No extracted text available for this file.',
+        mimeType: 'text/plain',
+      };
+    }
+
     return {
-      content: `Preview for file ${String(fileId)} will be available after indexing.`,
+      content: row.map((r) => r.chunk_text).join('\n\n---\n\n'),
       mimeType: 'text/plain',
     };
   });

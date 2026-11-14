@@ -3,6 +3,8 @@ import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { registerAllIpcHandlers } from './ipc';
 import { setupTray, destroyTray } from './tray';
+import { initializeDatabase, closeDatabase } from './services/db/connection';
+import { runMigrations } from './services/db/migrator';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -87,6 +89,15 @@ if (!gotTheLock) {
       });
     });
 
+    // Initialize Database & apply migrations
+    try {
+      const db = initializeDatabase();
+      runMigrations(db);
+      console.log('[Main] SQLite database initialized and migrations applied.');
+    } catch (err) {
+      console.error('[Main] Failed to initialize database:', err);
+    }
+
     // Register all typed IPC handlers
     registerAllIpcHandlers();
 
@@ -101,6 +112,7 @@ if (!gotTheLock) {
 
   app.on('before-quit', () => {
     isQuitting = true;
+    closeDatabase();
     destroyTray();
   });
 

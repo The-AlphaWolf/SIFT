@@ -15,7 +15,8 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "electron ./tests/integration/test-db-integration.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
