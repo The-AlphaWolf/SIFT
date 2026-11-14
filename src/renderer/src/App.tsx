@@ -18,8 +18,10 @@ import { OrganizationView } from './components/organization/OrganizationView';
 import { SettingsView } from './components/settings/SettingsView';
 import { StatusBar } from './components/common/StatusBar';
 import { OnboardingModal } from './components/onboarding/OnboardingModal';
+import { ToastProvider, useToast } from './components/common/Toast';
 
-export default function App(): JSX.Element {
+function AppContent(): JSX.Element {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'search' | 'overview' | 'library' | 'duplicates' | 'org' | 'settings'>('search');
   const [ipcConnected, setIpcConnected] = useState<boolean>(false);
   const [aiConfig, setAiConfig] = useState<AIProviderConfig | null>(null);
@@ -42,6 +44,36 @@ export default function App(): JSX.Element {
         }
       }).catch(console.error);
     }
+  }, []);
+
+  // Global Tab Switching Shortcuts (Ctrl+1 through Ctrl+6)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+        if (e.key === '1') {
+          e.preventDefault();
+          setActiveTab('search');
+        } else if (e.key === '2') {
+          e.preventDefault();
+          setActiveTab('overview');
+        } else if (e.key === '3') {
+          e.preventDefault();
+          setActiveTab('library');
+        } else if (e.key === '4') {
+          e.preventDefault();
+          setActiveTab('duplicates');
+        } else if (e.key === '5') {
+          e.preventDefault();
+          setActiveTab('org');
+        } else if (e.key === '6') {
+          e.preventDefault();
+          setActiveTab('settings');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const refreshFolders = async () => {
@@ -78,74 +110,92 @@ export default function App(): JSX.Element {
           <nav className="space-y-1">
             <button
               onClick={() => setActiveTab('search')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'search'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <Search className="w-4 h-4" />
-              <span>Search Library</span>
+              <div className="flex items-center space-x-3">
+                <Search className="w-4 h-4" />
+                <span>Search</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^1</span>
             </button>
 
             <button
               onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'overview'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
+              <div className="flex items-center space-x-3">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^2</span>
             </button>
 
             <button
               onClick={() => setActiveTab('library')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'library'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <FolderOpen className="w-4 h-4" />
-              <span>My Library</span>
+              <div className="flex items-center space-x-3">
+                <FolderOpen className="w-4 h-4" />
+                <span>My Library</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^3</span>
             </button>
 
             <button
               onClick={() => setActiveTab('duplicates')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'duplicates'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <Copy className="w-4 h-4" />
-              <span>Duplicates</span>
+              <div className="flex items-center space-x-3">
+                <Copy className="w-4 h-4" />
+                <span>Duplicates</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^4</span>
             </button>
 
             <button
               onClick={() => setActiveTab('org')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'org'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <FolderTree className="w-4 h-4" />
-              <span>Organization</span>
+              <div className="flex items-center space-x-3">
+                <FolderTree className="w-4 h-4" />
+                <span>Organization</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^5</span>
             </button>
 
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 activeTab === 'settings'
                   ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
+              <div className="flex items-center space-x-3">
+                <Settings className="w-4 h-4" />
+                <span>Settings</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">^6</span>
             </button>
           </nav>
         </div>
@@ -169,7 +219,7 @@ export default function App(): JSX.Element {
               <Cpu className="w-3.5 h-3.5 text-indigo-400" />
               <span>Ryzen 7 • RTX 3050</span>
             </span>
-            <span className="text-zinc-500">24 GB</span>
+            <span className="text-zinc-500 font-mono">24 GB</span>
           </div>
         </div>
       </aside>
@@ -206,5 +256,13 @@ export default function App(): JSX.Element {
         }}
       />
     </div>
+  );
+}
+
+export default function App(): JSX.Element {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
