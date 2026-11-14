@@ -21,6 +21,7 @@ interface DashboardViewProps {
   onNavigateToSearch: () => void;
   onNavigateToLibrary: () => void;
   onNavigateToDuplicates: () => void;
+  onSelectCategory?: (category: string) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -38,6 +39,7 @@ export function DashboardView({
   onNavigateToSearch,
   onNavigateToLibrary,
   onNavigateToDuplicates,
+  onSelectCategory,
 }: DashboardViewProps): JSX.Element {
   const toast = useToast();
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -201,14 +203,20 @@ export function DashboardView({
                 const percentage = totalFiles > 0 ? Math.round((count / totalFiles) * 100) : 0;
                 const color = CATEGORY_COLORS[cat] || '#64748B';
                 return (
-                  <div key={cat} className="space-y-1">
+                  <div
+                    key={cat}
+                    onClick={() => onSelectCategory?.(cat)}
+                    className="space-y-1 p-1 rounded-lg hover:bg-zinc-800/40 transition-colors cursor-pointer group"
+                    title={`Browse all ${cat} files`}
+                  >
                     <div className="flex items-center justify-between text-xs">
                       <span className="flex items-center space-x-2">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                        <span className="text-zinc-300 font-medium">{cat}</span>
+                        <span className="text-zinc-300 font-medium group-hover:text-indigo-300 transition-colors">{cat}</span>
                       </span>
-                      <span className="text-zinc-500 font-mono text-[11px]">
-                        {count.toLocaleString()} ({percentage}%)
+                      <span className="text-zinc-500 font-mono text-[11px] flex items-center space-x-1">
+                        <span>{count.toLocaleString()} ({percentage}%)</span>
+                        <ArrowRight className="w-3 h-3 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </span>
                     </div>
                     <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">

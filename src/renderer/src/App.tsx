@@ -27,6 +27,7 @@ function AppContent(): JSX.Element {
   const [aiConfig, setAiConfig] = useState<AIProviderConfig | null>(null);
   const [folders, setFolders] = useState<FolderInfo[]>([]);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.api) {
@@ -228,15 +229,31 @@ function AppContent(): JSX.Element {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Dynamic View Router */}
         <main className="flex-1 flex flex-col overflow-hidden">
-          {activeTab === 'search' && <SearchView />}
+          {activeTab === 'search' && (
+            <SearchView
+              initialCategory={selectedCategory}
+              onClearCategory={() => setSelectedCategory(null)}
+            />
+          )}
           {activeTab === 'overview' && (
             <DashboardView
               onNavigateToSearch={() => setActiveTab('search')}
               onNavigateToLibrary={() => setActiveTab('library')}
               onNavigateToDuplicates={() => setActiveTab('duplicates')}
+              onSelectCategory={(cat) => {
+                setSelectedCategory(cat);
+                setActiveTab('search');
+              }}
             />
           )}
-          {activeTab === 'library' && <LibraryView />}
+          {activeTab === 'library' && (
+            <LibraryView
+              onSelectCategory={(cat) => {
+                setSelectedCategory(cat);
+                setActiveTab('search');
+              }}
+            />
+          )}
           {activeTab === 'duplicates' && <DuplicatesView />}
           {activeTab === 'org' && <OrganizationView />}
           {activeTab === 'settings' && <SettingsView />}

@@ -52,6 +52,8 @@ export interface CategoryInfo {
   name: string;
   isSystem: boolean;
   colorHex: string;
+  fileCount?: number;
+  totalSizeBytes?: number;
 }
 
 export interface TagInfo {

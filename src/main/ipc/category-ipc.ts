@@ -14,11 +14,32 @@ export function registerCategoryIpc(): void {
   ipcMain.handle(IPC_CHANNELS.CATEGORIES_LIST, async (): Promise<CategoryInfo[]> => {
     const db = getDatabase();
     const rows = db.prepare(`
-      SELECT DISTINCT category FROM files WHERE category IS NOT NULL AND is_deleted = 0
-    `).all() as Array<{ category: string }>;
+      SELECT 
+        category, 
+        COUNT(*) as fileCount, 
+        COALESCE(SUM(size_bytes), 0) as totalSizeBytes 
+      FROM files 
+      WHERE category IS NOT NULL AND is_deleted = 0 
+      GROUP BY category
+    `).all() as Array<{ category: string; fileCount: number; totalSizeBytes: number }>;
+
+    const countMap = new Map<string, { fileCount: number; totalSizeBytes: number }>();
+    for (const row of rows) {
+      countMap.set(row.category, {
+        fileCount: Number(row.fileCount) || 0,
+        totalSizeBytes: Number(row.totalSizeBytes) || 0,
+      });
+    }
 
     const defaultNames = new Set<string>(DEFAULT_CATEGORIES.map((c) => c.name));
-    const result: CategoryInfo[] = [...DEFAULT_CATEGORIES];
+    const result: CategoryInfo[] = DEFAULT_CATEGORIES.map((cat) => {
+      const stats = countMap.get(cat.name);
+      return {
+        ...cat,
+        fileCount: stats?.fileCount || 0,
+        totalSizeBytes: stats?.totalSizeBytes || 0,
+      };
+    });
 
     for (const row of rows) {
       if (row.category && !defaultNames.has(row.category)) {
@@ -26,6 +47,8 @@ export function registerCategoryIpc(): void {
           name: row.category,
           isSystem: false,
           colorHex: '#94A3B8',
+          fileCount: Number(row.fileCount) || 0,
+          totalSizeBytes: Number(row.totalSizeBytes) || 0,
         });
       }
     }

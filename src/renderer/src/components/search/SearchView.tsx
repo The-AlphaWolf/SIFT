@@ -36,7 +36,12 @@ const SUGGESTED_QUERIES = [
   'Largest pdf files',
 ];
 
-export function SearchView(): JSX.Element {
+interface SearchViewProps {
+  initialCategory?: string | null;
+  onClearCategory?: () => void;
+}
+
+export function SearchView({ initialCategory, onClearCategory }: SearchViewProps = {}): JSX.Element {
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -88,8 +93,25 @@ export function SearchView(): JSX.Element {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  const executeSearch = async (targetQuery: string = query) => {
-    if (!window.api || !targetQuery.trim()) {
+  useEffect(() => {
+    if (initialCategory) {
+      setSelectedCat(initialCategory);
+      executeSearch('', initialCategory);
+    }
+  }, [initialCategory]);
+
+  const executeSearch = async (
+    targetQuery: string = query,
+    overrideCategory?: string,
+    overrideExtension?: string
+  ) => {
+    if (!window.api) return;
+
+    const catToUse = overrideCategory !== undefined ? overrideCategory : selectedCat;
+    const extToUse = overrideExtension !== undefined ? overrideExtension : selectedExt;
+
+    // If query is empty and no filters are selected, return null
+    if (!targetQuery.trim() && catToUse === 'All' && extToUse === 'All') {
       setSearchResponse(null);
       return;
     }
@@ -97,15 +119,15 @@ export function SearchView(): JSX.Element {
     setIsSearching(true);
     try {
       const filters: any = {};
-      if (selectedExt !== 'All') {
-        filters.extensions = [selectedExt.toLowerCase()];
+      if (extToUse !== 'All') {
+        filters.extensions = [extToUse.toLowerCase()];
       }
-      if (selectedCat !== 'All') {
-        filters.category = selectedCat;
+      if (catToUse !== 'All') {
+        filters.category = catToUse;
       }
 
       const res = await window.api.search(targetQuery, {
-        useAiInterpretation: useAi,
+        useAiInterpretation: targetQuery.trim() ? useAi : false,
         filters,
         limit: 50,
       });
@@ -199,6 +221,12 @@ export function SearchView(): JSX.Element {
     setSelectedExt('All');
     setSelectedCat('All');
     setSortBy('relevance');
+    onClearCategory?.();
+    if (query.trim()) {
+      executeSearch(query, 'All', 'All');
+    } else {
+      setSearchResponse(null);
+    }
   };
 
   const hasActiveFilters = selectedExt !== 'All' || selectedCat !== 'All' || sortBy !== 'relevance';
@@ -320,7 +348,10 @@ export function SearchView(): JSX.Element {
               {EXTENSION_FILTERS.map((ext) => (
                 <button
                   key={ext}
-                  onClick={() => setSelectedExt(ext)}
+                  onClick={() => {
+                    setSelectedExt(ext);
+                    executeSearch(query, undefined, ext);
+                  }}
                   className={`px-2 py-0.5 rounded text-[11px] transition-all cursor-pointer ${
                     selectedExt === ext
                       ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 font-medium'
@@ -338,7 +369,10 @@ export function SearchView(): JSX.Element {
               {CATEGORY_FILTERS.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCat(cat)}
+                  onClick={() => {
+                    setSelectedCat(cat);
+                    executeSearch(query, cat);
+                  }}
                   className={`px-2 py-0.5 rounded text-[11px] transition-all cursor-pointer ${
                     selectedCat === cat
                       ? 'bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 font-medium'

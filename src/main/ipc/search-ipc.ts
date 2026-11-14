@@ -3,7 +3,7 @@ import { z } from 'zod';
 import * as path from 'path';
 import * as fs from 'fs';
 import { IPC_CHANNELS } from '../../shared/contracts/ipc-api';
-import type { SearchResponse } from '../../shared/contracts/ipc-api';
+import type { SearchResponse, SearchResultItem } from '../../shared/contracts/ipc-api';
 import { getDatabase } from '../services/db/connection';
 import { searchFtsQuery } from '../services/db/queries/fts-queries';
 import { searchVectorSimilarity } from '../services/search/vector-engine';
@@ -55,10 +55,69 @@ export function registerSearchIpc(): void {
       const db = getDatabase();
 
       if (!parsedQuery) {
+        const conditions: string[] = ['is_deleted = 0'];
+        const params: any[] = [];
+
+        if (options.filters?.category) {
+          conditions.push('category = ?');
+          params.push(options.filters.category);
+        }
+
+        if (options.filters?.extensions && options.filters.extensions.length > 0) {
+          const extPlaceholders = options.filters.extensions.map(() => '?').join(',');
+          conditions.push(`extension IN (${extPlaceholders})`);
+          params.push(...options.filters.extensions.map((e) => e.toLowerCase().replace(/^\./, '')));
+        }
+
+        if (options.filters?.dateAfter) {
+          conditions.push('modified_at >= ?');
+          params.push(options.filters.dateAfter);
+        }
+
+        if (options.filters?.dateBefore) {
+          conditions.push('modified_at <= ?');
+          params.push(options.filters.dateBefore);
+        }
+
+        const whereClause = conditions.join(' AND ');
+        const totalCount = (
+          db.prepare(`SELECT COUNT(*) as cnt FROM files WHERE ${whereClause}`).get(...params) as any
+        )?.cnt || 0;
+
+        const rows = db.prepare(`
+          SELECT 
+            id as fileId,
+            absolute_path as filePath,
+            filename,
+            extension,
+            size_bytes as sizeBytes,
+            modified_at as modifiedAt,
+            category,
+            1.0 as score,
+            'filename' as matchType
+          FROM files
+          WHERE ${whereClause}
+          ORDER BY modified_at DESC
+          LIMIT ? OFFSET ?
+        `).all(...params, options.limit, options.offset) as any[];
+
+        const results: SearchResultItem[] = rows.map((r) => ({
+          fileId: r.fileId,
+          filePath: r.filePath,
+          filename: r.filename,
+          extension: r.extension,
+          sizeBytes: r.sizeBytes,
+          modifiedAt: r.modifiedAt,
+          category: r.category,
+          score: 1.0,
+          matchType: 'filename',
+          snippets: [],
+        }));
+
         return {
-          results: [],
-          totalCount: 0,
-          executionTimeMs: 0,
+          results,
+          totalCount,
+          executionTimeMs: Math.round(performance.now() - startTime),
         };
       }
 
