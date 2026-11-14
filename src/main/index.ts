@@ -45,6 +45,15 @@ if (!gotTheLock) {
       mainWindow?.show();
     });
 
+    // Pipe renderer console logs directly to terminal for instant debugging
+    mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+      console.log(`[Renderer Console] [Level ${level}] ${message} (${sourceId}:${line})`);
+    });
+
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+      console.error(`[Renderer Load Failed] Code: ${errorCode}, Description: ${errorDescription}, URL: ${validatedURL}`);
+    });
+
     // Intercept window close to minimize to tray if configured
     mainWindow.on('close', (event) => {
       if (!isQuitting) {
@@ -79,12 +88,14 @@ if (!gotTheLock) {
 
     // Security: Restrict network requests outside localhost
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      const csp = is.dev
+        ? "default-src 'self' http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; style-src 'self' 'unsafe-inline' http://localhost:*; img-src 'self' data: http://localhost:*; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*"
+        : "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:*";
+
       callback({
         responseHeaders: {
           ...details.responseHeaders,
-          'Content-Security-Policy': [
-            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:*",
-          ],
+          'Content-Security-Policy': [csp],
         },
       });
     });
@@ -98,26 +109,24 @@ if (!gotTheLock) {
       console.error('[Main] Failed to initialize database:', err);
     }
 
-    // Register all typed IPC handlers
+    // Register all type-safe IPC handlers
     registerAllIpcHandlers();
 
     createWindow();
 
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-      }
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
   });
 
   app.on('before-quit', () => {
     isQuitting = true;
-    closeDatabase();
-    destroyTray();
   });
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
+      destroyTray();
+      closeDatabase();
       app.quit();
     }
   });
