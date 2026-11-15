@@ -4,7 +4,7 @@
   "description": "Local-First Intelligent File Librarian for Windows 11",
   "main": "./out/main/index.js",
   "author": "The-AlphaWolf",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json",

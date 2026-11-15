@@ -87,6 +87,6 @@ SIFT works out of the box with or without an active AI server:
 
 ---
 
-## 📄 License
+## 📄 Copyright
 
-This project is licensed under the [MIT License](LICENSE).
+Copyright © 2026 The-AlphaWolf. All rights reserved.
