@@ -445,7 +445,15 @@ export function SearchView({ initialCategory, onClearCategory }: SearchViewProps
             </span>
             <span>Keywords: <strong className="text-white font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">[{searchResponse.queryInterpreted.keywords.join(', ')}]</strong></span>
             {searchResponse.queryInterpreted.category && (
-              <span>Category: <strong className="text-indigo-300">{searchResponse.queryInterpreted.category}</strong></span>
+              <span className="flex items-center space-x-1.5">
+                <span>Category:</span>
+                <strong className="text-indigo-300 font-medium bg-indigo-500/20 px-1.5 py-0.5 rounded border border-indigo-500/30">{searchResponse.queryInterpreted.category}</strong>
+              </span>
+            )}
+            {searchResponse.queryInterpreted.isCategoryIntent && (
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-medium">
+                Category Intent Filter
+              </span>
             )}
             {searchResponse.queryInterpreted.extensions && (
               <span>Extensions: <strong className="text-cyan-300 font-mono">[{searchResponse.queryInterpreted.extensions.join(', ')}]</strong></span>

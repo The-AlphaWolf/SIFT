@@ -10,6 +10,7 @@ export interface StructuredQuery {
   minSizeBytes?: number;
   maxSizeBytes?: number;
   category?: string;
+  isCategoryIntent?: boolean;
   sortBy?: 'relevance' | 'date' | 'size' | 'name';
 }
 

@@ -136,17 +136,99 @@ export function registerSearchIpc(): void {
       const effectiveDateAfter = options.filters?.dateAfter || structuredQuery.dateAfter;
       const effectiveDateBefore = options.filters?.dateBefore || structuredQuery.dateBefore;
 
-      // 1. Keyword search via SQLite FTS5
+      // 1. Ingest direct candidates from category and filename matching
+      const additionalCandidates: SearchResultItem[] = [];
+
+      if (effectiveCategory) {
+        const catRows = db
+          .prepare(
+            `
+          SELECT 
+            id as fileId,
+            absolute_path as filePath,
+            filename,
+            extension,
+            size_bytes as sizeBytes,
+            modified_at as modifiedAt,
+            category
+          FROM files
+          WHERE category = ? AND is_deleted = 0
+          ORDER BY modified_at DESC
+          LIMIT 50
+        `
+          )
+          .all(effectiveCategory) as any[];
+
+        for (const r of catRows) {
+          additionalCandidates.push({
+            fileId: r.fileId,
+            filePath: r.filePath,
+            filename: r.filename,
+            extension: r.extension,
+            sizeBytes: Number(r.sizeBytes),
+            modifiedAt: r.modifiedAt,
+            category: r.category,
+            score: 0.5,
+            matchType: 'filename',
+            snippets: [],
+          });
+        }
+      }
+
+      // Keyword matches on filename
+      const searchTerms = activeKeywords
+        .map((k) => k.trim())
+        .filter((k) => k.length >= 2 && !/^(?:ext|\.)$/i.test(k));
+
+      if (searchTerms.length > 0) {
+        const fnClauses = searchTerms.map(() => 'filename LIKE ?').join(' OR ');
+        const fnParams = searchTerms.map((t) => `%${t}%`);
+        const fnRows = db
+          .prepare(
+            `
+          SELECT 
+            id as fileId,
+            absolute_path as filePath,
+            filename,
+            extension,
+            size_bytes as sizeBytes,
+            modified_at as modifiedAt,
+            category
+          FROM files
+          WHERE (${fnClauses}) AND is_deleted = 0
+          LIMIT 50
+        `
+          )
+          .all(...fnParams) as any[];
+
+        for (const r of fnRows) {
+          additionalCandidates.push({
+            fileId: r.fileId,
+            filePath: r.filePath,
+            filename: r.filename,
+            extension: r.extension,
+            sizeBytes: Number(r.sizeBytes),
+            modifiedAt: r.modifiedAt,
+            category: r.category,
+            score: 0.7,
+            matchType: 'filename',
+            snippets: [],
+          });
+        }
+      }
+
+      // 2. Keyword search via SQLite FTS5
+      const ftsCategory = structuredQuery.isCategoryIntent ? undefined : effectiveCategory;
       const ftsResult = searchFtsQuery(db, activeQueryStr, {
         limit: options.limit * 2,
         offset: 0,
         extensions: effectiveExtensions,
-        category: effectiveCategory,
+        category: ftsCategory,
         dateAfter: effectiveDateAfter,
         dateBefore: effectiveDateBefore,
       });
 
-      // 2. Semantic vector search via sqlite-vec
+      // 3. Semantic vector search via sqlite-vec
       let vectorMatches: any[] = [];
       try {
         vectorMatches = await searchVectorSimilarity(db, activeQueryStr, 30);
@@ -154,8 +236,17 @@ export function registerSearchIpc(): void {
         console.warn('[SearchIPC] Vector search fallback to FTS-only:', vecErr);
       }
 
-      // 3. Hybrid fusion ranking
-      const rankedResults = fuseAndRankResults(ftsResult.results, vectorMatches, activeKeywords);
+      // 4. Hybrid fusion ranking with category weighting & candidate blending
+      const rankedResults = fuseAndRankResults(
+        ftsResult.results,
+        vectorMatches,
+        activeKeywords,
+        {
+          targetCategory: effectiveCategory,
+          isCategoryIntent: !!structuredQuery.isCategoryIntent,
+        },
+        additionalCandidates
+      );
 
       // Apply pagination
       const paginated = rankedResults.slice(options.offset, options.offset + options.limit);

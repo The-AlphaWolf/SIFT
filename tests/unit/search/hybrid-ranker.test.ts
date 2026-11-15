@@ -99,5 +99,51 @@ describe('Phase 4 Hybrid Ranker', () => {
       expect(results[0].matchType).toBe('hybrid');
       expect(results[0].score).toBeGreaterThan(0.7);
     });
+
+    it('should boost category matches and demote unrelated files when category intent is active', () => {
+      // Academic file matching category
+      const academicFile: SearchResultItem = {
+        fileId: 'file-academic',
+        filePath: 'D:/Notes/COMPUTER NETWORKS 1.docx',
+        filename: 'COMPUTER NETWORKS 1.docx',
+        extension: 'docx',
+        sizeBytes: 15000,
+        modifiedAt: new Date().toISOString(),
+        category: 'Academics',
+        score: 0.1,
+        matchType: 'filename',
+        snippets: [],
+      };
+
+      // Unrelated novel matching an incidental word in FTS
+      const novelFile: SearchResultItem = {
+        fileId: 'file-novel',
+        filePath: 'D:/Downloads/Apocalypse_Novel.txt',
+        filename: 'Apocalypse_Novel.txt',
+        extension: 'txt',
+        sizeBytes: 500000,
+        modifiedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'Miscellaneous',
+        score: 0.7, // incidental FTS match
+        matchType: 'fts',
+        snippets: [{ chunkId: 10, text: 'I started studying the whole building...', highlightRanges: [] }],
+      };
+
+      const results = fuseAndRankResults(
+        [novelFile],
+        [],
+        ['study', 'materials'],
+        {
+          targetCategory: 'Academics',
+          isCategoryIntent: true,
+        },
+        [academicFile]
+      );
+
+      expect(results.length).toBe(2);
+      // The academic file should rank first despite the novel having an incidental FTS match
+      expect(results[0].fileId).toBe('file-academic');
+      expect(results[0].score).toBeGreaterThan(results[1].score);
+    });
   });
 });

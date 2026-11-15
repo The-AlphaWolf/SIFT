@@ -1,3 +1,5 @@
+import type Database from 'better-sqlite3';
+
 export interface FileCategorizationInput {
   filename: string;
   extension: string;
@@ -62,18 +64,87 @@ const ACADEMIC_KEYWORDS = [
   'lectures',
   'course',
   'courses',
+  'coursework',
   'syllabus',
+  'curriculum',
   'semester',
+  'sem',
+  'sem1',
+  'sem2',
+  'sem3',
+  'sem4',
+  'sem5',
+  'sem6',
+  'sem7',
+  'sem8',
+  'ug1',
+  'ug2',
+  'ug3',
+  'ug4',
   'assignment',
   'assignments',
   'homework',
   'exam',
+  'exams',
+  'examination',
   'midterm',
   'quiz',
+  'test',
+  'tests',
   'thesis',
   'dissertation',
   'textbook',
-  'curriculum',
+  'tutorial',
+  'tutorials',
+  'study',
+  'studies',
+  'study_material',
+  'study_materials',
+  'study_notes',
+  'lecture_notes',
+  'class_notes',
+  'revision_notes',
+  'exam_notes',
+  'material',
+  'materials',
+  'lab',
+  'experiment',
+  'experiments',
+  'solutions',
+  'solution',
+  'answers',
+  'answer',
+  'question',
+  'questions',
+  'question_paper',
+  'question_papers',
+  'module',
+  'chapter',
+  'unit',
+  'handout',
+  'workbook',
+  'admit_card',
+  'transcript',
+  'transcripts',
+  'aptitude',
+  'cat',
+  'gate',
+  'college',
+  'university',
+  'network',
+  'networks',
+  'networking',
+  'communication',
+  'computer_network',
+  'computer_networks',
+  'antenna',
+  'antennas',
+  'microprocessor',
+  'microcontroller',
+  '8051',
+  '8085',
+  '8086',
+  'coa',
   'microwave',
   'waveguide',
   'semiconductor',
@@ -83,12 +154,16 @@ const ACADEMIC_KEYWORDS = [
   'physics',
   'calculus',
   'linear_algebra',
+  'algebra',
   'signals',
   'dft',
   'dsp',
   'ieee',
   'ece',
   'cse',
+  'vswr',
+  'klystron',
+  'radar',
 ];
 
 const FINANCE_KEYWORDS = [
@@ -191,8 +266,10 @@ const PERSONAL_KEYWORDS = [
 
 function containsKeyword(text: string, keywords: string[]): boolean {
   for (const kw of keywords) {
-    const escaped = kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const regex = new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, 'i');
+    const parts = kw.split(/[-_\s]+/);
+    const escapedParts = parts.filter(Boolean).map((p) => p.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const pattern = escapedParts.join('[-_\\s]+');
+    const regex = new RegExp(`(?:^|[^a-z0-9])${pattern}(?:$|[^a-z0-9])`, 'i');
     if (regex.test(text)) {
       return true;
     }
@@ -216,11 +293,11 @@ export function categorizeFile(input: FileCategorizationInput): string {
   if (containsKeyword(combined, FINANCE_KEYWORDS)) {
     return 'Finance';
   }
-  if (containsKeyword(combined, ACADEMIC_KEYWORDS)) {
-    return 'Academics';
-  }
   if (containsKeyword(combined, WORK_KEYWORDS)) {
     return 'Work';
+  }
+  if (containsKeyword(combined, ACADEMIC_KEYWORDS)) {
+    return 'Academics';
   }
   if (containsKeyword(combined, PROJECT_KEYWORDS)) {
     return 'Projects';
@@ -235,4 +312,44 @@ export function categorizeFile(input: FileCategorizationInput): string {
   }
 
   return 'Miscellaneous';
+}
+
+/**
+ * Re-categorizes all non-deleted files in the database based on the latest rules.
+ * Runs atomically inside a transaction.
+ */
+export function reCategorizeAllFiles(db: Database.Database): number {
+  const rows = db
+    .prepare(
+      'SELECT id, filename, extension, relative_path as relativePath, absolute_path as absolutePath, category FROM files WHERE is_deleted = 0'
+    )
+    .all() as Array<{
+    id: string;
+    filename: string;
+    extension: string;
+    relativePath?: string;
+    absolutePath?: string;
+    category: string;
+  }>;
+
+  const updateStmt = db.prepare('UPDATE files SET category = ? WHERE id = ?');
+  let updatedCount = 0;
+
+  const tx = db.transaction(() => {
+    for (const r of rows) {
+      const newCat = categorizeFile({
+        filename: r.filename,
+        extension: r.extension,
+        relativePath: r.relativePath,
+        absolutePath: r.absolutePath,
+      });
+      if (newCat !== r.category) {
+        updateStmt.run(newCat, r.id);
+        updatedCount++;
+      }
+    }
+  });
+
+  tx();
+  return updatedCount;
 }

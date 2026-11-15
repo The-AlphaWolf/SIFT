@@ -12,6 +12,59 @@ const structuredQuerySchema = z.object({
   sortBy: z.enum(['relevance', 'date', 'size', 'name']).optional().default('relevance'),
 });
 
+interface CategoryHeuristic {
+  category: string;
+  pattern: RegExp;
+  intentPattern: RegExp;
+}
+
+export const CATEGORY_HEURISTICS: CategoryHeuristic[] = [
+  {
+    category: 'Academics',
+    pattern: /\b(stud(?:y|ies)|materials?|notes?|lecture[s]?|courses?|assignments?|homework|exams?|syllabus|textbooks?|lab[s]?|curriculum|semesters?|sem\b|admit[\s_-]*cards?|transcripts?)\b/i,
+    intentPattern: /\b(stud(?:y|ies)(?:\s+materials?)?|lecture\s+notes?|class\s+notes?|course\s+materials?|syllabus|assignments?|homework|exam\s+papers?|academic\s+papers?)\b/i,
+  },
+  {
+    category: 'Finance',
+    pattern: /\b(receipts?|invoices?|bills?|taxes?|tax|salary|payslips?|expenses?|statements?)\b/i,
+    intentPattern: /\b(receipts?|invoices?|bills?|tax\s+documents?|expenses?|payslips?)\b/i,
+  },
+  {
+    category: 'Work',
+    pattern: /\b(resumes?|cv\b|curriculum\s+vitae|cover\s*letters?|offer\s*letters?|portfolios?|job\s*applications?)\b/i,
+    intentPattern: /\b(resumes?|cv\b|cover\s*letters?|offer\s*letters?|portfolios?)\b/i,
+  },
+  {
+    category: 'Personal',
+    pattern: /\b(passports?|visas?|licenses?|aadhar|prescriptions?|medical|insurances?)\b/i,
+    intentPattern: /\b(passports?|visas?|licenses?|medical\s*records?|insurance\s*polic(?:y|ies))\b/i,
+  },
+  {
+    category: 'Images',
+    pattern: /\b(photos?|pictures?|screenshots?|wallpapers?|images?)\b/i,
+    intentPattern: /\b(photos?|pictures?|screenshots?|wallpapers?|images?)\b/i,
+  },
+  {
+    category: 'Applications',
+    pattern: /\b(installers?|executables?|setup|apps?|applications?)\b/i,
+    intentPattern: /\b(installers?|setups?|applications?)\b/i,
+  },
+];
+
+export function detectCategoryFromQuery(query: string): { category?: string; isCategoryIntent?: boolean } {
+  for (const h of CATEGORY_HEURISTICS) {
+    if (h.intentPattern.test(query)) {
+      return { category: h.category, isCategoryIntent: true };
+    }
+  }
+  for (const h of CATEGORY_HEURISTICS) {
+    if (h.pattern.test(query)) {
+      return { category: h.category, isCategoryIntent: false };
+    }
+  }
+  return {};
+}
+
 /**
  * Deterministic fallback tokenizer if local AI is unavailable or fails to return JSON.
  */
@@ -38,10 +91,14 @@ export function fallbackTokenizeQuery(rawQuery: string): StructuredQuery {
     }
   }
 
+  const detected = detectCategoryFromQuery(clean);
+
   return {
     rawQuery: clean,
     keywords: keywords.length > 0 ? keywords : [clean],
     extensions: extensions.length > 0 ? extensions : undefined,
+    category: detected.category,
+    isCategoryIntent: detected.isCategoryIntent,
     sortBy: 'relevance',
   };
 }
@@ -74,13 +131,20 @@ export async function interpretNaturalQuery(
     const parsed = JSON.parse(jsonStr);
     const validated = structuredQuerySchema.parse(parsed);
 
+    const detected = detectCategoryFromQuery(trimmed);
+    const finalCategory = validated.category || detected.category || undefined;
+    const isCategoryIntent =
+      detected.isCategoryIntent ||
+      (finalCategory !== undefined && /\b(materials?|all|show|find|list|get|notes?)\b/i.test(trimmed));
+
     return {
       rawQuery: trimmed,
       keywords: validated.keywords.length > 0 ? validated.keywords : [trimmed],
       extensions: validated.extensions?.map((e) => e.toLowerCase().replace(/^\./, '')),
       dateAfter: validated.dateAfter || undefined,
       dateBefore: validated.dateBefore || undefined,
-      category: validated.category || undefined,
+      category: finalCategory,
+      isCategoryIntent,
       sortBy: validated.sortBy,
     };
   } catch (err) {

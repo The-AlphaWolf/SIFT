@@ -5,6 +5,7 @@ import { registerAllIpcHandlers } from './ipc';
 import { setupTray, destroyTray } from './tray';
 import { initializeDatabase, closeDatabase } from './services/db/connection';
 import { runMigrations } from './services/db/migrator';
+import { reCategorizeAllFiles } from './services/categorization/rule-categorizer';
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -105,6 +106,11 @@ if (!gotTheLock) {
       const db = initializeDatabase();
       runMigrations(db);
       console.log('[Main] SQLite database initialized and migrations applied.');
+
+      const recatCount = reCategorizeAllFiles(db);
+      if (recatCount > 0) {
+        console.log(`[Main] Re-categorized ${recatCount} files based on enhanced categorization rules.`);
+      }
     } catch (err) {
       console.error('[Main] Failed to initialize database:', err);
     }
