@@ -4,6 +4,7 @@ node_modules/
 # Production build outputs
 dist/
 out/
+brag-output/
 
 # Logs
 *.log
