@@ -6,7 +6,7 @@ import { LMStudioAdapter } from './lmstudio-adapter';
 let activeConfig: AIProviderConfig = {
   provider: 'ollama',
   baseUrl: 'http://127.0.0.1:11434',
-  model: 'qwen2.5:3b',
+  model: 'qwen2.5:3b-instruct',
   timeoutMs: 10000,
 };
 

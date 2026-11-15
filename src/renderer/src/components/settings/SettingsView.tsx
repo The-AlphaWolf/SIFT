@@ -15,7 +15,7 @@ export function SettingsView(): JSX.Element {
   const toast = useToast();
   const [provider, setProvider] = useState<'ollama' | 'lmstudio'>('ollama');
   const [baseUrl, setBaseUrl] = useState('http://127.0.0.1:11434');
-  const [model, setModel] = useState('qwen2.5:3b');
+  const [model, setModel] = useState('qwen2.5:3b-instruct');
   const [timeoutMs, setTimeoutMs] = useState(10000);
   const [closeBehavior, setCloseBehavior] = useState('minimizeToTray');
 
@@ -43,7 +43,7 @@ export function SettingsView(): JSX.Element {
     setProvider(newProvider);
     if (newProvider === 'ollama') {
       setBaseUrl('http://127.0.0.1:11434');
-      setModel('qwen2.5:3b');
+      setModel('qwen2.5:3b-instruct');
     } else {
       setBaseUrl('http://127.0.0.1:1234');
       setModel('qwen2.5-3b-instruct');
