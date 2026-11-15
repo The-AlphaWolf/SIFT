@@ -21,6 +21,7 @@
   "build": {
     "appId": "com.sift.librarian",
     "productName": "SIFT",
+    "npmRebuild": false,
     "directories": {
       "output": "dist"
     },
@@ -37,7 +38,8 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "portable"
       ]
     },
     "nsis": {
@@ -45,7 +47,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SIFT File Librarian"
+      "shortcutName": "SIFT File Librarian",
+      "artifactName": "SIFT-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "SIFT-${version}-Portable.${ext}"
     }
   },
   "dependencies": {
