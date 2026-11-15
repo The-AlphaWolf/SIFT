@@ -74,10 +74,13 @@ export interface OrganizationResponse {
   totalCount: number;
 }
 
+export type AIProviderType = 'ollama' | 'lmstudio' | 'openai' | 'gemini' | 'custom';
+
 export interface AIProviderConfig {
-  provider: 'ollama' | 'lmstudio';
+  provider: AIProviderType;
   baseUrl: string;
   model: string;
+  apiKey?: string;
   timeoutMs: number;
 }
 
@@ -96,6 +99,18 @@ export interface IndexingProgressEvent {
   isPaused: boolean;
 }
 
+export interface HardwareProfile {
+  cpuModel: string;
+  cpuCores: number;
+  totalRamGb: number;
+  freeRamGb: number;
+  gpuName: string;
+  osPlatform: string;
+  osRelease: string;
+  summaryBadge: string;
+  ramBadge: string;
+}
+
 export interface SystemStats {
   totalFiles: number;
   totalSizeBytes: number;
@@ -111,6 +126,7 @@ export interface SiftIpcBridge {
   // System & Lifecycle
   ping: () => Promise<string>;
   getSystemStats: () => Promise<SystemStats>;
+  getHardwareProfile: () => Promise<HardwareProfile>;
 
   // Folder Operations
   selectDirectoryDialog: () => Promise<string | null>;
@@ -174,6 +190,7 @@ export const IPC_CHANNELS = {
   // System
   SYSTEM_PING: 'system:ping',
   SYSTEM_GET_STATS: 'system:get-stats',
+  SYSTEM_GET_HARDWARE_PROFILE: 'system:get-hardware-profile',
 
   // Folders
   FOLDER_SELECT_DIALOG: 'folder:select-dialog',

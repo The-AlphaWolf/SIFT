@@ -9,7 +9,7 @@ import {
   HardDrive,
   Cpu,
 } from 'lucide-react';
-import type { FolderInfo, AIProviderConfig } from '@shared/contracts/ipc-api';
+import type { FolderInfo, AIProviderConfig, HardwareProfile } from '@shared/contracts/ipc-api';
 import { SearchView } from './components/search/SearchView';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { LibraryView } from './components/library/LibraryView';
@@ -46,6 +46,7 @@ function AppContent(): JSX.Element {
   const [folders, setFolders] = useState<FolderInfo[]>([]);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [hardware, setHardware] = useState<HardwareProfile | null>(null);
 
   useEffect(() => {
     if (window.api) {
@@ -55,6 +56,11 @@ function AppContent(): JSX.Element {
         .catch(() => setIpcConnected(false));
 
       window.api.getAiSettings().then(setAiConfig).catch(console.error);
+
+      window.api
+        .getHardwareProfile?.()
+        ?.then(setHardware)
+        ?.catch(console.error);
 
       window.api
         .listFolders()
@@ -171,11 +177,15 @@ function AppContent(): JSX.Element {
           </div>
 
           <div className="px-2.5 py-1.5 rounded-lg bg-[#19191b] border border-white/[0.08] text-[11px] text-[#85858b] flex items-center justify-between">
-            <span className="flex items-center space-x-2">
-              <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[#ededed] font-medium">Ryzen 7 • RTX 3050</span>
+            <span className="flex items-center space-x-2 truncate pr-1">
+              <Cpu className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+              <span className="text-[#ededed] font-medium truncate">
+                {hardware ? hardware.summaryBadge : 'Hardware Specs'}
+              </span>
             </span>
-            <span className="text-indigo-300 font-mono text-[10px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">24 GB</span>
+            <span className="text-indigo-300 font-mono text-[10px] bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20 shrink-0">
+              {hardware ? hardware.ramBadge : 'Local'}
+            </span>
           </div>
         </div>
       </aside>

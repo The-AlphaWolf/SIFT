@@ -6,7 +6,8 @@ export class OllamaAdapter implements IAIProvider {
   constructor(
     public readonly baseUrl: string = 'http://127.0.0.1:11434',
     public readonly model: string = 'qwen2.5:3b',
-    public readonly timeoutMs: number = 10000
+    public readonly timeoutMs: number = 10000,
+    public readonly apiKey?: string
   ) {}
 
   public async ping(): Promise<ProviderHealth> {
@@ -34,9 +35,13 @@ export class OllamaAdapter implements IAIProvider {
 
     try {
       const endpoint = `${this.baseUrl.replace(/\/+$/, '')}/api/tags`;
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
       const res = await fetch(endpoint, {
         signal: controller.signal,
-        headers: { Accept: 'application/json' },
+        headers,
       });
 
       if (!res.ok) {
@@ -66,13 +71,18 @@ export class OllamaAdapter implements IAIProvider {
       }
       messages.push({ role: 'user', content: prompt });
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      };
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+
       const res = await fetch(endpoint, {
         method: 'POST',
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           model: this.model,
           messages,

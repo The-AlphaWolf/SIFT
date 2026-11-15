@@ -1,3 +1,5 @@
+import type { AIProviderType } from '../../../shared/contracts/ipc-api';
+
 export interface ProviderHealth {
   alive: boolean;
   latencyMs: number;
@@ -6,9 +8,10 @@ export interface ProviderHealth {
 }
 
 export interface IAIProvider {
-  readonly name: 'ollama' | 'lmstudio';
+  readonly name: AIProviderType;
   readonly baseUrl: string;
   readonly model: string;
+  readonly apiKey?: string;
   readonly timeoutMs: number;
 
   ping(): Promise<ProviderHealth>;

@@ -18,9 +18,10 @@ const addFolderSchema = z.object({
 
 // Mirrors the schema in ai-ipc.ts
 const aiConfigSchema = z.object({
-  provider: z.enum(['ollama', 'lmstudio']),
+  provider: z.enum(['ollama', 'lmstudio', 'openai', 'gemini', 'custom']),
   baseUrl: z.string().url('Invalid endpoint URL'),
   model: z.string().min(1, 'Model name cannot be empty'),
+  apiKey: z.string().optional(),
   timeoutMs: z.number().int().min(1000).max(60000),
 });
 
@@ -86,9 +87,33 @@ describe('IPC Validation Schemas & Contracts', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should accept valid OpenAI configuration with API key', () => {
+      const validConfig = {
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'gpt-4o-mini',
+        apiKey: 'sk-test-1234567890abcdef',
+        timeoutMs: 10000,
+      };
+      const result = aiConfigSchema.safeParse(validConfig);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept valid Gemini configuration with API key', () => {
+      const validConfig = {
+        provider: 'gemini',
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+        model: 'gemini-1.5-flash',
+        apiKey: 'AIzaSyTest123456',
+        timeoutMs: 10000,
+      };
+      const result = aiConfigSchema.safeParse(validConfig);
+      expect(result.success).toBe(true);
+    });
+
     it('should reject unsupported provider', () => {
       const invalidConfig = {
-        provider: 'cloud-openai',
+        provider: 'unknown-vendor-xyz',
         baseUrl: 'http://127.0.0.1:11434',
         model: 'gpt-4',
         timeoutMs: 5000,

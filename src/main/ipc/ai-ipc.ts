@@ -12,9 +12,10 @@ import {
 } from '../services/ai/ai-service';
 
 const aiConfigSchema = z.object({
-  provider: z.enum(['ollama', 'lmstudio']),
+  provider: z.enum(['ollama', 'lmstudio', 'openai', 'gemini', 'custom']),
   baseUrl: z.string().url('Invalid endpoint URL'),
   model: z.string().min(1, 'Model name cannot be empty'),
+  apiKey: z.string().optional(),
   timeoutMs: z.number().int().min(1000).max(60000),
 });
 

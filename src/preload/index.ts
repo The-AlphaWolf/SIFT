@@ -18,6 +18,7 @@ const api: SiftIpcBridge = {
   // System
   ping: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_PING),
   getSystemStats: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_GET_STATS),
+  getHardwareProfile: () => ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_GET_HARDWARE_PROFILE),
 
   // Folders
   selectDirectoryDialog: () =>
